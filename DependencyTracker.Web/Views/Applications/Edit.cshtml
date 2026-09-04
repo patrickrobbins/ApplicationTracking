@@ -1,0 +1,198 @@
+@model DependencyTracker.Web.Models.ViewModels.ApplicationFormViewModel
+
+@{
+    ViewBag.Title = "Edit Application";
+}
+
+<div class="page-header mt-3 mb-4">
+    <h1 class="h3 mb-0">Edit Application</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.ApplicationId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Version</label>
+                            @Html.TextBoxFor(m => m.Version, new { @class = "form-control", placeholder = "e.g. 1.2.0" })
+                            @Html.ValidationMessageFor(m => m.Version, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Business Group</label>
+                            @Html.TextBoxFor(m => m.BusinessGroup, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Business Owner</label>
+                            @Html.TextBoxFor(m => m.BusinessOwner, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Business Owner Email</label>
+                            @Html.TextBoxFor(m => m.BusinessOwnerEmail, new { @class = "form-control", type = "email" })
+                            @Html.ValidationMessageFor(m => m.BusinessOwnerEmail, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Business Backup</label>
+                            @Html.TextBoxFor(m => m.BusinessBackup, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Business Backup Email</label>
+                            @Html.TextBoxFor(m => m.BusinessBackupEmail, new { @class = "form-control", type = "email" })
+                            @Html.ValidationMessageFor(m => m.BusinessBackupEmail, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Technical Owner</label>
+                            @Html.TextBoxFor(m => m.TechnicalOwner, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Technical Owner Email</label>
+                            @Html.TextBoxFor(m => m.TechnicalOwnerEmail, new { @class = "form-control", type = "email" })
+                            @Html.ValidationMessageFor(m => m.TechnicalOwnerEmail, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Category</label>
+                            @Html.DropDownListFor(m => m.CategoryId, Model.CategoryOptions, "Select...", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Environment</label>
+                            @Html.DropDownListFor(m => m.Environment, Model.EnvironmentOptions, "Select...", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Criticality</label>
+                            @Html.DropDownListFor(m => m.CriticalityLevel, Model.CriticalityOptions, "Select...", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            @Html.DropDownListFor(m => m.Status, Model.StatusOptions, new { @class = "form-select" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">External URL</label>
+                            @Html.TextBoxFor(m => m.ExternalUrl, new { @class = "form-control" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Source path</label>
+                            @Html.TextBoxFor(m => m.SourcePath, new { @class = "form-control", placeholder = @"C:\inetpub\wwwroot\PortalWeb" })
+                            @Html.ValidationMessageFor(m => m.SourcePath, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <div class="fw-semibold mb-2">Technology &amp; Operations</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Application IDE</label>
+                            @Html.TextBoxFor(m => m.ApplicationIDE, new { @class = "form-control", placeholder = "e.g. Visual Studio 2022" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Framework Version</label>
+                            @Html.TextBoxFor(m => m.FrameworkVersion, new { @class = "form-control", placeholder = "e.g. .NET Framework 4.7.2" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Application Technologies</label>
+                            @Html.ListBoxFor(m => m.SelectedTechnologyIds, Model.TechnologyOptions, new { @class = "form-select", size = 6 })
+                            <div class="form-text">
+                                Hold <strong>Ctrl</strong> (or <strong>Cmd</strong>) to select multiple. Tags are maintained in the
+                                <a href="@Url.Action("Technologies", "Admin")">Administration</a> area.
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Documentation Link</label>
+                            @Html.TextBoxFor(m => m.DocumentationLink, new { @class = "form-control", placeholder = "https://confluence.company.com/..." })
+                            @Html.ValidationMessageFor(m => m.DocumentationLink, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Source Control Location</label>
+                            @Html.TextBoxFor(m => m.SourceControlLocation, new { @class = "form-control", placeholder = "e.g. https://dev.azure.com/org/Project/_git/PortalWeb" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Hours of Operation</label>
+                            @Html.TextBoxFor(m => m.HoursOfOperation, new { @class = "form-control", placeholder = "e.g. 24x7" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Maintenance Window</label>
+                            @Html.TextBoxFor(m => m.MaintenanceWindow, new { @class = "form-control", placeholder = "e.g. Sat 02:00-04:00" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Maintenance Notification Email</label>
+                            @Html.TextBoxFor(m => m.MaintenanceNotificationEmail, new { @class = "form-control", placeholder = "maintenance@company.com", type = "email" })
+                            @Html.ValidationMessageFor(m => m.MaintenanceNotificationEmail, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Application Summary</label>
+                            @Html.TextAreaFor(m => m.ApplicationSummary, new { @class = "form-control", rows = 2 })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Triage Steps</label>
+                            @Html.TextAreaFor(m => m.TriageSteps, new { @class = "form-control", rows = 2, placeholder = "Steps to follow when this application has an incident..." })
+                        </div>
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <div class="fw-semibold mb-2">Default dependency settings</div>
+                            <div class="text-muted small mb-3">These pre-fill criticality and impact when a dependency targets this application.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Default dependency criticality</label>
+                            @Html.DropDownListFor(m => m.DefaultDependencyCriticality, Model.CriticalityOptions, "Not set", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Default dependency impact</label>
+                            @Html.TextAreaFor(m => m.DefaultDependencyImpact, new { @class = "form-control", rows = 2, placeholder = "What stops working if this app is down..." })
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h6 class="fw-semibold mb-3">Properties</h6>
+                    if (Model.Properties != null && Model.Properties.Any())
+                    {
+                        <div class="row g-3">
+                            @for (var i = 0; i < Model.Properties.Count; i++)
+                            {
+                                var prop = Model.Properties[i];
+                                <div class="col-md-6">
+                                    @Html.Hidden("Properties[" + i + "].PropertyDefinitionId", prop.PropertyDefinitionId)
+                                    @Html.Hidden("Properties[" + i + "].Key", prop.Key)
+                                    @Html.Hidden("Properties[" + i + "].Label", prop.Label)
+                                    @Html.Hidden("Properties[" + i + "].DataType", prop.DataType)
+                                    <label class="form-label">@prop.Label</label>
+                                    @(prop.DataType == "Multiline"
+                                        ? Html.TextArea("Properties[" + i + "].Value", prop.Value, 2, 5, new { @class = "form-control" })
+                                        : Html.TextBox("Properties[" + i + "].Value", prop.Value, new { @class = "form-control" }))
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">
+                            No property definitions are configured.
+                            <a href="@Url.Action("PropertyDefinitions", "Admin")">Add definitions</a> to enable dynamic properties.
+                        </p>
+                    }
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <a href="@Url.Action("Details", new { id = Model.ApplicationId })" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

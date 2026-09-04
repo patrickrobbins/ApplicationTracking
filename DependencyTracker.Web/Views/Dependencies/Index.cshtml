@@ -1,0 +1,119 @@
+@model DependencyTracker.Web.Models.ViewModels.DependencyListViewModel
+
+@{
+    ViewBag.Title = "Dependencies";
+    Func<string, string> CriticalityBadge = level =>
+    {
+        switch (level)
+        {
+            case "Critical": return "bg-danger";
+            case "High": return "bg-warning text-dark";
+            case "Medium": return "bg-secondary";
+            default: return "bg-light text-dark border";
+        }
+    };
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Dependencies</h1>
+    @if (Model.CanEdit)
+    {
+        <a href="@Url.Action("Create", "Dependencies")" class="btn btn-primary">+ Add Dependency</a>
+    }
+</div>
+
+@* Filter bar *@
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Index", "Dependencies", FormMethod.Get, new { @class = "row g-2 align-items-end" }))
+        {
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Type</label>
+                @Html.DropDownList("dependencyType", Model.TypeOptions, "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Source Application</label>
+                @Html.DropDownList("sourceId", new SelectList(Model.SourceOptions, "Value", "Text", Model.SourceId), "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Target Application</label>
+                @Html.DropDownList("targetId", new SelectList(Model.TargetOptions, "Value", "Text", Model.TargetId), "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Criticality</label>
+                @Html.DropDownList("criticality", Model.CriticalityOptions, "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        }
+    </div>
+</div>
+
+@if (!Model.Dependencies.Any())
+{
+    <div class="alert alert-info">No dependencies match your criteria.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Source (Depends On)</th>
+                        <th></th>
+                        <th>Target (Provider)</th>
+                        <th>Type</th>
+                        <th>Frequency</th>
+                        <th>Criticality</th>
+                        @if (Model.CanEdit) { <th class="text-end">Actions</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dep in Model.Dependencies)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("Details", "Applications", new { id = dep.SourceApplicationId })"
+                                   class="fw-semibold text-decoration-none">@dep.SourceName</a>
+                            </td>
+                            <td class="text-muted">
+                                <span title="Direction: @dep.Direction">→</span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", "Applications", new { id = dep.TargetApplicationId })"
+                                   class="fw-semibold text-decoration-none">@dep.TargetName</a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@dep.DependencyType</span></td>
+                            <td class="small text-muted">@dep.Frequency</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(dep.CriticalityLevel))
+                                {
+                                    <span class="badge @CriticalityBadge(dep.CriticalityLevel)">@dep.CriticalityLevel</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            @if (Model.CanEdit)
+                            {
+                                <td class="text-end">
+                                    <a href="@Url.Action("Edit", "Dependencies", new { id = dep.DependencyId })"
+                                       class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    @using (Html.BeginForm("Delete", "Dependencies", new { id = dep.DependencyId }, FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this dependency?');">Delete</button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

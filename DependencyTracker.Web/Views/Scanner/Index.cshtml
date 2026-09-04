@@ -1,0 +1,122 @@
+@model DependencyTracker.Web.Models.ViewModels.ConfigScannerViewModel
+@{
+    ViewBag.Title = "Configuration Scanner";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <h1 class="h3 mb-0">Configuration Scanner</h1>
+    @if (Model.Scanned)
+    {
+        <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Index", "Scanner")">Start New Scan</a>
+    }
+</div>
+
+@if (!Model.Scanned)
+{
+    <div class="card">
+        <div class="card-body">
+            <p class="text-muted">
+                Paste the <code>web.config</code> or <code>app.config</code> XML for an application. The scanner runs
+                each active property definition's scan pattern (a regular expression) against the configuration keys and
+                values, and suggests target applications by matching the captured value against the stored property values
+                of every tracked application. You review and confirm each candidate before a dependency is created.
+            </p>
+            @using (Html.BeginForm("Index", "Scanner", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.SourceApplicationId, new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.SourceApplicationId, Model.ApplicationOptions, "-- select application --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(m => m.SourceApplicationId, "", new { @class = "text-danger" })
+                </div>
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.ConfigXml, new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.ConfigXml, new { @class = "form-control font-monospace", rows = 16, placeholder = "<configuration> ..." })
+                    @Html.ValidationMessageFor(m => m.ConfigXml, "", new { @class = "text-danger" })
+                </div>
+                <button type="submit" class="btn btn-primary">Scan Configuration</button>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        Source application: <strong>@Model.SourceApplicationName</strong>. Found
+        <strong>@Model.Candidates.Count</strong> candidate(s). Check the rows you want to create and confirm the target
+        application for each.
+    </div>
+
+    if (Model.Candidates.Count == 0)
+    {
+        <div class="alert alert-warning">
+            No candidates matched the active scan patterns. Check the scan patterns on the active property definitions
+            in Admin &rarr; Property Definitions.
+        </div>
+    }
+    else
+    {
+        using (Html.BeginForm("Apply", "Scanner", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.SourceApplicationId)
+            @Html.HiddenFor(m => m.ConfigXml)
+            @Html.HiddenFor(m => m.Scanned)
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Add</th>
+                            <th>Section</th>
+                            <th>Key</th>
+                            <th>Value</th>
+                            <th>Matched Definition</th>
+                            <th>Suggested Target</th>
+                            <th>Target Application</th>
+                            <th>Type</th>
+                            <th>Direction</th>
+                            <th>Criticality</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Candidates.Count; i++)
+                        {
+                            var c = Model.Candidates[i];
+                            <tr>
+                                <td>@Html.CheckBoxFor(m => m.Candidates[i].Include, new { @class = "form-check-input" })</td>
+                                <td>
+                                    @c.Section
+                                    @if (c.IsUrl)
+                                    {
+                                        <span class="badge bg-info">URL</span>
+                                    }
+                                </td>
+                                <td class="text-break"><code>@c.Key</code></td>
+                                <td class="text-break small"><code>@c.Value</code></td>
+                                <td class="small">
+                                    <span class="badge bg-primary">@c.MatchedDefinition</span>
+                                    <div class="text-muted">matched: @c.MatchedValue</div>
+                                </td>
+                                <td class="small">@(string.IsNullOrEmpty(c.SuggestedTargetName) ? "&mdash;" : c.SuggestedTargetName)</td>
+                                <td style="min-width: 200px;">
+                                    @Html.DropDownListFor(m => m.Candidates[i].TargetApplicationId, Model.ApplicationOptions, "-- select --", new { @class = "form-select form-select-sm" })
+                                </td>
+                                <td style="min-width: 140px;">
+                                    @Html.DropDownListFor(m => m.Candidates[i].DependencyType, Model.TypeOptions, new { @class = "form-select form-select-sm" })
+                                </td>
+                                <td style="min-width: 140px;">
+                                    @Html.DropDownListFor(m => m.Candidates[i].Direction, Model.DirectionOptions, new { @class = "form-select form-select-sm" })
+                                </td>
+                                <td style="min-width: 120px;">
+                                    @Html.DropDownListFor(m => m.Candidates[i].CriticalityLevel, Model.CriticalityOptions, new { @class = "form-select form-select-sm" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Selected Dependencies</button>
+        }
+    }
+}

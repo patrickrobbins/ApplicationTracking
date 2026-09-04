@@ -1,0 +1,120 @@
+@model DependencyTracker.Web.Models.ViewModels.DiscoveryReviewViewModel
+@{
+    ViewBag.Title = "Review Discovered Dependencies";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <h1 class="h3 mb-0">Review Discovered Dependencies</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Index", "Discovery")">Start New Scan</a>
+</div>
+
+@using (Html.BeginForm("Apply", "Discovery", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.BasePath)
+    @Html.HiddenFor(m => m.AppHostConfigPath)
+
+    <div class="alert alert-info">
+        Applying will create/update the applications below, record the DLLs found under each source path (bin and
+        subdirectories), and create the checked dependencies. Applications marked "Update existing" keep their current
+        registry entry and only gain the new source path; everything else is created fresh. Dependencies are skipped when
+        they already exist.
+    </div>
+
+    if (Model.Apps == null || Model.Apps.Count == 0)
+    {
+        <div class="alert alert-warning">No applications selected. Go back and select at least one application.</div>
+    }
+    else
+    {
+        for (var i = 0; i < Model.Apps.Count; i++)
+        {
+            var app = Model.Apps[i];
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-semibold">@app.Name</span>
+                        @if (app.MatchedApplicationId > 0)
+                        {
+                            <span class="badge bg-primary ms-1">Update existing</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success ms-1">Create new</span>
+                        }
+                        @if (app.DllCount > 0)
+                        {
+                            <span class="badge bg-info text-dark ms-1">@app.DllCount DLL(s)</span>
+                        }
+                    </div>
+                    <span class="small text-muted text-truncate ms-2" title="@app.SourcePath">@app.SourcePath</span>
+                </div>
+                <div class="card-body">
+                    @Html.Hidden("Apps[" + i + "].Name", app.Name)
+                    @Html.Hidden("Apps[" + i + "].SourcePath", app.SourcePath)
+                    @Html.Hidden("Apps[" + i + "].SiteName", app.SiteName)
+                    @Html.Hidden("Apps[" + i + "].MatchedApplicationId", app.MatchedApplicationId)
+
+                    @if (app.Candidates == null || app.Candidates.Count == 0)
+                    {
+                        <p class="text-muted small mb-0">
+                            No config dependencies matched a tracked application for this app.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 60px;">Add</th>
+                                        <th>Dependency Target</th>
+                                        <th>Matched</th>
+                                        <th>Type</th>
+                                        <th style="width: 110px;">Criticality</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var j = 0; j < app.Candidates.Count; j++)
+                                    {
+                                        var c = app.Candidates[j];
+                                        <tr>
+                                            <td>
+                                                @Html.CheckBox("Apps[" + i + "].Candidates[" + j + "].Include", c.Include, new { @class = "form-check-input" })
+                                            </td>
+                                            <td>
+                                                <span class="fw-semibold">@c.SuggestedTargetName</span>
+                                                @Html.Hidden("Apps[" + i + "].Candidates[" + j + "].TargetApplicationId", c.TargetApplicationId)
+                                                @Html.Hidden("Apps[" + i + "].Candidates[" + j + "].DependencyType", c.DependencyType)
+                                                @Html.Hidden("Apps[" + i + "].Candidates[" + j + "].Direction", c.Direction)
+                                            </td>
+                                            <td class="small text-muted text-break">
+                                                <span class="badge bg-light text-dark border">@c.MatchedDefinition</span>
+                                                <code class="d-inline-block text-truncate" style="max-width: 260px;" title="@c.Key = @c.Value">@c.Key</code>
+                                            </td>
+                                            <td><span class="badge bg-info text-dark">@c.DependencyType</span></td>
+                                            <td>
+                                                @{
+                                                    var criticality = string.IsNullOrEmpty(c.CriticalityLevel) ? "Low" : c.CriticalityLevel;
+                                                }
+                                                <select name="Apps[@i].Candidates[@j].CriticalityLevel" class="form-select form-select-sm">
+                                                    @foreach (var lvl in new[] { "Critical", "High", "Medium", "Low" })
+                                                    {
+                                                        <option value="@lvl" @(lvl == criticality ? "selected" : "")>@lvl</option>
+                                                    }
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary btn-lg">Apply Discovered Applications &amp; Dependencies</button>
+        <a href="@Url.Action("Index", "Discovery")" class="btn btn-outline-secondary ms-1">Cancel</a>
+    }
+}

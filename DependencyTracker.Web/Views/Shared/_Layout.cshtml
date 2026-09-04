@@ -1,0 +1,113 @@
+@using DependencyTracker.Web
+@using DependencyTracker.Web.Models
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Application Dependency Tracker</title>
+    @Styles.Render("~/Content/css")
+    @RenderSection("head", required: false)
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+            <span class="navbar-brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2 L28.5 9 V23 L16 30 L3.5 23 V9 Z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="16" cy="7.5" r="3" fill="#fff"/>
+                    <circle cx="8" cy="23" r="3" fill="#fff"/>
+                    <circle cx="24" cy="23" r="3" fill="#fff"/>
+                    <path d="M16 10.5 L8 20" stroke="#fff" stroke-width="1.5"/>
+                    <path d="M16 10.5 L24 20" stroke="#fff" stroke-width="1.5"/>
+                    <path d="M11 23 L21 23" stroke="#fff" stroke-width="1.5"/>
+                </svg>
+            </span> DependencyTracker
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Home" ? "active" : "")">
+                    <a class="nav-link" href="@Url.Action("Index", "Home")">Dashboard</a>
+                </li>
+                <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Applications" ? "active" : "")">
+                    <a class="nav-link" href="@Url.Action("Index", "Applications")">Applications</a>
+                </li>
+                <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Dependencies" ? "active" : "")">
+                    <a class="nav-link" href="@Url.Action("Index", "Dependencies")">Dependencies</a>
+                </li>
+                <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Graph" ? "active" : "")">
+                    <a class="nav-link" href="@Url.Action("Index", "Graph")">Dependency Graph</a>
+                </li>
+                @if (AdRoleManager.IsCurrentUserInRole(AdRoleManager.RoleAdmin))
+                {
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Admin" ? "active" : "")">
+                        <a class="nav-link" href="@Url.Action("Index", "Admin")">Admin</a>
+                    </li>
+                }
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @AdRoleManager.CurrentUserFullName
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <span class="dropdown-item-text text-muted small">
+                            Roles:
+                            @string.Join(", ", AdRoleManager.GetCurrentUserRoles())
+                        </span>
+                        <div class="dropdown-divider"></div>
+                        @if (AdRoleManager.IsCurrentUserInRole(AdRoleManager.RoleAdmin))
+                        {
+                            <a class="dropdown-item" href="@Url.Action("AdGroups", "Admin")">AD Group Configuration</a>
+                            <a class="dropdown-item" href="@Url.Action("Categories", "Admin")">Application Categories</a>
+                            <a class="dropdown-item" href="@Url.Action("PropertyDefinitions", "Admin")">Property Definitions</a>
+                            <a class="dropdown-item" href="@Url.Action("ActivityLog", "Admin")">Activity Log</a>
+                        }
+                        @if (AdRoleManager.IsCurrentUserInRole(AdRoleManager.RoleMaintenance) ||
+                             AdRoleManager.IsCurrentUserInRole(AdRoleManager.RoleAdmin))
+                        {
+                            <a class="dropdown-item" href="@Url.Action("Index", "Scanner")">Config Scanner</a>
+                            <a class="dropdown-item" href="@Url.Action("Index", "Discovery")">Server Discovery</a>
+                            <a class="dropdown-item" href="@Url.Action("Create", "Applications")">Add Application</a>
+                        }
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container-fluid" role="main">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container-fluid">
+            <span class="text-muted small">Application Dependency Tracker &copy; @DateTime.Now.Year</span>
+        </div>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

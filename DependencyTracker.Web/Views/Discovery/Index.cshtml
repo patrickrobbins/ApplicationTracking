@@ -1,0 +1,152 @@
+@model DependencyTracker.Web.Models.ViewModels.DiscoveryIndexViewModel
+@{
+    ViewBag.Title = "Server Discovery";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <h1 class="h3 mb-0">Server Discovery</h1>
+    @if (Model.Scanned)
+    {
+        <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Index", "Discovery")">Start New Scan</a>
+    }
+</div>
+
+@if (!Model.Scanned)
+{
+    <div class="card">
+        <div class="card-body">
+            <p class="text-muted">
+                Recursively scan an IIS host or network share for applications by locating
+                <code>web.config</code> / <code>app.config</code> files (each containing folder is a candidate
+                application). If <code>applicationHost.config</code> is readable, IIS site names are resolved and
+                sites without a config file are included too. You review the discovered applications, confirm any
+                matches with existing ones, review the dependencies found in their configuration, and apply everything
+                in one pass.
+            </p>
+            @using (Html.BeginForm("Index", "Discovery", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.BasePath, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.BasePath, new { @class = "form-control", placeholder = @"e.g. C:\inetpub\wwwroot or \\server\share" })
+                    @Html.ValidationMessageFor(m => m.BasePath, "", new { @class = "text-danger" })
+                </div>
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.AppHostConfigPath, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.AppHostConfigPath, new { @class = "form-control", placeholder = @"C:\Windows\System32\inetsrv\config\applicationHost.config (optional)" })
+                    <div class="form-text">Optional. Used only to resolve IIS site names; the folder scan works without it.</div>
+                </div>
+                <div class="border-top pt-3 mb-3">
+                    <span class="text-muted d-block mb-2">Optional credentials for network shares / remote physical paths</span>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.Username, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = @"DOMAIN\jsmith" })
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", autocomplete = "off" })
+                        </div>
+                    </div>
+                    <div class="form-text">
+                        Leave blank to scan using the application's own Windows identity. Credentials are used to
+                        reach network shares / remote physical paths; a wrong account results in those paths simply
+                        being unreachable and skipped.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Scan Server</button>
+            }
+        </div>
+    </div>
+}
+else
+{
+    if (!string.IsNullOrEmpty(Model.Warning))
+    {
+        <div class="alert alert-warning">@Model.Warning</div>
+    }
+
+    if (Model.Apps != null && Model.Apps.Count > 0)
+    {
+        using (Html.BeginForm("ReviewDependencies", "Discovery", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.BasePath)
+            @Html.HiddenFor(m => m.AppHostConfigPath)
+            <div class="alert alert-info">
+                Found <strong>@Model.Apps.Count</strong> candidate application(s). Check the rows to include, correct
+                the names if needed, and choose whether each one should create a new application or update a matched
+                existing one. You will review its config dependencies on the next step before applying.
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Include</th>
+                            <th>Name</th>
+                            <th>IIS Site</th>
+                            <th>Source Path</th>
+                            <th>Config</th>
+                            <th>DLLs</th>
+                            <th style="min-width: 280px;">Create New / Update Existing</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Apps.Count; i++)
+                        {
+                            var app = Model.Apps[i];
+                            <tr>
+                                <td>@Html.CheckBoxFor(m => m.Apps[i].Include, new { @class = "form-check-input" })</td>
+                                <td>
+                                    @Html.TextBoxFor(m => m.Apps[i].Name, new { @class = "form-control form-control-sm" })
+                                </td>
+                                <td class="small">
+                                    @(string.IsNullOrEmpty(app.SiteName) ? "&mdash;" : app.SiteName)
+                                </td>
+                                <td class="small text-break">
+                                    @Html.HiddenFor(m => m.Apps[i].SourcePath)
+                                    <span title="@app.SourcePath">@app.SourcePath</span>
+                                </td>
+                                <td>
+                                    @if (app.HasConfig)
+                                    {
+                                        <span class="badge bg-success">web/app.config</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">none</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (app.DllCount > 0)
+                                    {
+                                        <span class="badge bg-info text-dark">@app.DllCount DLL(s)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">none</span>
+                                    }
+                                </td>
+                                <td>
+                                    @foreach (var opt in app.MatchOptions)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio"
+                                                   name="Apps[@i].MatchedApplicationId"
+                                                   id="match-@i-@opt.Value"
+                                                   value="@opt.Value"
+                                                   @(opt.Selected ? "checked" : "") />
+                                            <label class="form-check-label small" for="match-@i-@opt.Value">@opt.Text</label>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary">Review Dependencies &amp; Apply</button>
+        }
+    }
+}

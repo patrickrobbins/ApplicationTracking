@@ -1,0 +1,289 @@
+@model DependencyTracker.Web.Models.ViewModels.ApplicationSearchViewModel
+
+@{
+    ViewBag.Title = "Applications";
+
+    // Preserves the active filters when toggling the "show all versions" view.
+    var filterRoute = new RouteValueDictionary(new
+    {
+        term = Model.Term,
+        environment = Model.Environment,
+        status = Model.Status,
+        criticality = Model.Criticality,
+        categoryId = Model.CategoryId,
+        technologyId = Model.TechnologyId,
+        version = Model.Version,
+        dllName = Model.DllName,
+        dllOperator = Model.DllOperator,
+        dllVersion = Model.DllVersion,
+        includeDeleted = Model.IncludeDeleted
+    });
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Applications</h1>
+    @if (Model.CanEdit)
+    {
+        <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">+ Add Application</a>
+    }
+</div>
+
+@* Filter bar *@
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        @using (Html.BeginForm("Index", "Applications", FormMethod.Get, new { @class = "row g-2 align-items-end" }))
+        {
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Search</label>
+                @Html.TextBoxFor(m => m.Term, new { @class = "form-control", placeholder = "Name, owner, description..." })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Category</label>
+                @Html.DropDownListFor(m => m.CategoryId,
+                    Model.Categories,
+                    "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Environment</label>
+                @Html.DropDownListFor(m => m.Environment,
+                    new SelectList(Model.Environments, Model.Environment),
+                    "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Status</label>
+                @Html.DropDownListFor(m => m.Status,
+                    new SelectList(Model.Statuses, Model.Status),
+                    "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Criticality</label>
+                @Html.DropDownListFor(m => m.Criticality,
+                    new SelectList(Model.Criticalities, Model.Criticality),
+                    "All", new { @class = "form-select" })
+            </div>
+            <div class="col-md-2">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <div class="d-flex gap-2 align-items-end">
+                    <button type="submit" class="btn btn-primary flex-shrink-0">Filter</button>
+                    <div class="form-check form-switch mb-0">
+                        @Html.CheckBoxFor(m => m.IncludeDeleted, new { @class = "form-check-input", id = "includeDeleted" })
+                        <label class="form-check-label small text-muted" for="includeDeleted">Include deleted</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <hr class="my-2" />
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">App Version</label>
+                        @Html.DropDownListFor(m => m.Version,
+                            new SelectList(Model.Versions, Model.Version),
+                            "All", new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">DLL</label>
+                        @Html.TextBoxFor(m => m.DllName, new { @class = "form-control", placeholder = "e.g. Newtonsoft.Json.dll" })
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Version</label>
+                        @Html.DropDownListFor(m => m.DllOperator, Model.DllOperators, new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Version Number</label>
+                        @Html.TextBoxFor(m => m.DllVersion, new { @class = "form-control", placeholder = "e.g. 13.0.0" })
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-text mt-md-4">
+                            Find applications that use a DLL by file name, optionally restricted to a version
+                            comparison (e.g. <code>Newtonsoft.Json.dll</code> with version <code>&gt;= 13.0.0</code>).
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Technology</label>
+                        @Html.DropDownListFor(m => m.TechnologyId,
+                            Model.Technologies,
+                            "All", new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-text mt-md-4">
+                            Filter by application technology tag (e.g. .NET Framework, ASP.NET, SQL Server).
+                            Tags are maintained on the application form.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (!Model.Results.Any())
+{
+    <div class="alert alert-info">No applications match your search criteria.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Application</th>
+                        <th>Category</th>
+                        <th>Environment</th>
+                        <th>Criticality</th>
+                        <th>Status</th>
+                        <th class="text-center">Dependencies</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model.Results)
+                    {
+                        var isExpandedHeader = app.ShowAllVersions && app.IsGroupHead && app.VersionCount > 1;
+                        var isSubRow = app.ShowAllVersions && app.VersionCount > 1;
+                        var rowClass = app.IsDeleted
+                            ? "table-secondary"
+                            : (isSubRow ? "table-light" : null);
+
+                        if (isExpandedHeader)
+                        {
+                            <tr class="@(app.IsDeleted ? "table-secondary" : "table-primary fw-semibold")">
+                                <td colspan="7">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <span>
+                                            @app.Name
+                                            <span class="badge bg-light text-dark border ms-1">@app.VersionCount versions</span>
+                                            @if (app.IsDeleted)
+                                            {
+                                                <span class="badge bg-danger ms-1">Deleted</span>
+                                            }
+                                        </span>
+                                        @if (app.VersionCount > 1)
+                                        {
+                                            filterRoute["showAllVersions"] = !app.ShowAllVersions;
+                                            var toggleUrl = Url.Action("Index", "Applications", filterRoute);
+                                            <a href="@toggleUrl" class="text-decoration-none small">Show only latest version</a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+
+                        <tr class="@rowClass">
+                            <td>
+                                <div class="@(isSubRow ? "ps-4" : null)">
+                                    <a href="@Url.Action("Details", "Applications", new { id = app.ApplicationId })"
+                                       class="fw-semibold text-decoration-none @(app.IsDeleted ? "text-muted" : null)">@app.Name</a>
+                                    @if (app.VersionCount > 1 && !string.IsNullOrEmpty(app.Version))
+                                    {
+                                        <span class="badge bg-dark ms-1">v@(app.Version)</span>
+                                    }
+                                    @if (app.IsDeleted)
+                                    {
+                                        <span class="badge bg-danger ms-1">Deleted</span>
+                                    }
+                                    @if (app.VersionCount > 1 && app.IsGroupHead && !app.ShowAllVersions)
+                                    {
+                                        filterRoute["showAllVersions"] = true;
+                                        var toggleUrl = Url.Action("Index", "Applications", filterRoute);
+                                        <div class="small mt-1">
+                                            <a href="@toggleUrl" class="text-decoration-none">
+                                                Show all @app.VersionCount versions
+                                                @if (!string.IsNullOrWhiteSpace(app.GroupVersions))
+                                                {
+                                                    <text>(@app.GroupVersions)</text>
+                                                }
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="small text-muted">@(app.Description == null ? "" : app.Description.Length > 60 ? app.Description.Substring(0, 60) + "..." : app.Description)</div>
+                                @if (app.MatchedDlls != null && app.MatchedDlls.Any())
+                                {
+                                    <div class="small">
+                                        @foreach (var dll in app.MatchedDlls)
+                                        {
+                                            <div class="font-monospace text-break text-info">@dll</div>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                            <td><span class="badge @BadgeFor("cat", app.Category)">@(app.Category ?? "-")</span></td>
+                            <td><span class="badge @BadgeFor("env", app.Environment)">@app.Environment</span></td>
+                            <td><span class="badge @BadgeFor("crit", app.CriticalityLevel)">@app.CriticalityLevel</span></td>
+                            <td><span class="badge @BadgeFor("status", app.Status)">@app.Status</span></td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">@app.DependencyCount</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="@Url.Action("Details", "Applications", new { id = app.ApplicationId })"
+                                   class="btn btn-sm btn-outline-secondary">View</a>
+                                <a href="@Url.Action("Index", "Graph", new { applicationId = app.ApplicationId })"
+                                   class="btn btn-sm btn-outline-primary">Graph</a>
+                                @if (Model.CanEdit)
+                                {
+                                    <a href="@Url.Action("Edit", "Applications", new { id = app.ApplicationId })"
+                                       class="btn btn-sm btn-outline-secondary">Edit</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@functions {
+    private string BadgeFor(string type, string value)
+    {
+        if (type == "env")
+        {
+            switch (value)
+            {
+                case "Production": return "bg-danger";
+                case "Staging": return "bg-warning text-dark";
+                case "Development": return "bg-secondary";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "crit")
+        {
+            switch (value)
+            {
+                case "Critical": return "bg-danger";
+                case "High": return "bg-warning text-dark";
+                case "Medium": return "bg-info text-dark";
+                case "Low": return "bg-success";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "status")
+        {
+            switch (value)
+            {
+                case "Active": return "bg-success";
+                case "Planned": return "bg-info text-dark";
+                case "Retired": return "bg-dark";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "cat")
+        {
+            switch (value)
+            {
+                case "Internal": return "bg-primary";
+                case "External": return "bg-warning text-dark";
+                case "Library": return "bg-info text-dark";
+                case "Database": return "bg-secondary";
+                case "Active Directory": return "bg-dark";
+                default: return "bg-light text-dark border";
+            }
+        }
+        return "bg-secondary";
+    }
+}

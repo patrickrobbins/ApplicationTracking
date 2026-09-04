@@ -1,0 +1,60 @@
+@model DependencyTracker.Web.Models.ViewModels.DeleteApplicationViewModel
+
+@{
+    ViewBag.Title = "Delete Application";
+    var formAction = Url.Action("Delete", "Applications", new { id = Model.ApplicationId });
+    var cancelUrl = Url.Action("Details", "Applications", new { id = Model.ApplicationId });
+    var hardDisabled = Model.CanDelete ? null : "disabled";
+    var hardLabelClass = Model.CanDelete ? null : "text-muted";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-white fw-semibold text-danger">Delete Application</div>
+            <div class="card-body">
+                <h4 class="mb-2">@Model.Name</h4>
+                <p>
+                    <span class="badge @(Model.Environment == "Production" ? "bg-danger" : "bg-secondary")">@Model.Environment</span>
+                    <span class="badge @(Model.CriticalityLevel == "Critical" ? "bg-danger" : "bg-warning text-dark")">@Model.CriticalityLevel</span>
+                </p>
+
+                @if (Model.IsDeleted)
+                {
+                    <div class="alert alert-warning">
+                        This application is already soft-deleted and hidden from the registry.
+                        You can permanently delete it below, or restore it from its details page.
+                    </div>
+                }
+
+                <p>Choose how to remove this application.</p>
+                <form method="post" action="@formAction">
+                    @Html.AntiForgeryToken()
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="permanent" id="delSoft" value="false" checked="checked" />
+                        <label class="form-check-label" for="delSoft">
+                            <strong>Soft delete (recommended)</strong> &mdash; hides the application from the registry,
+                            graph and discovery. It can be restored later.
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="permanent" id="delHard" value="true" @hardDisabled />
+                        <label class="form-check-label @hardLabelClass" for="delHard">
+                            <strong>Permanently delete</strong> &mdash; removes the application and all of its data.
+                            This cannot be undone.
+                        </label>
+                    </div>
+                    @if (!Model.CanDelete)
+                    {
+                        <div class="alert alert-warning py-2">
+                            Permanently deleting is unavailable because this application has @Model.DependencyCount
+                            dependency relationship(s). Remove the dependencies first, or use soft delete.
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <a href="@cancelUrl" class="btn btn-secondary ms-1">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

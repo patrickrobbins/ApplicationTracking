@@ -1,0 +1,234 @@
+/* ============================================================================
+   Application Dependency Tracker - Graph Page Stylesheet
+   ========================================================================== */
+
+.graph-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 108px);
+    margin-top: 16px;
+}
+
+/* ---------- Toolbar ---------- */
+.graph-toolbar {
+    background: #fff;
+    border: 1px solid var(--dt-border, #e2e8f0);
+    border-radius: var(--dt-radius, 16px);
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--dt-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.graph-toolbar-inner .form-label {
+    margin-bottom: 2px;
+}
+
+/* ---------- Main area ---------- */
+.graph-main {
+    position: relative;
+    flex: 1;
+    min-height: 480px;
+    background: #fbfcfe;
+    border: 1px solid var(--dt-border, #e2e8f0);
+    border-radius: var(--dt-radius, 16px);
+    overflow: hidden;
+    box-shadow: var(--dt-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+#cy {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ---------- Loading overlay ---------- */
+.graph-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 20;
+}
+
+/* ---------- Empty state ---------- */
+.graph-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    color: var(--dt-ink-2, #334155);
+    background: #fbfcfe;
+    z-index: 5;
+}
+
+.graph-empty-icon {
+    color: var(--dt-muted-2, #94a3b8);
+}
+
+/* ---------- Legends ---------- */
+.graph-legend {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--dt-border, #e2e8f0);
+    border-radius: 12px;
+    padding: 10px 12px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.graph-legend-right {
+    left: auto;
+    right: 12px;
+}
+
+.legend-title {
+    margin-bottom: 4px;
+    color: var(--dt-ink-2, #334155);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--dt-ink-2, #334155);
+    margin: 2px 0;
+}
+
+.level-chip {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.level-0 { background-color: #e11d48; }
+.level-1 { background-color: #f59e0b; }
+.level-2 { background-color: #84cc16; }
+.level-3 { background-color: #14b8a6; }
+.level-4 { background-color: #6366f1; }
+.level-5 { background-color: #8b5cf6; }
+
+.crit-chip {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: 0 0 auto;
+    border: 2px solid var(--dt-ink, #0f172a);
+}
+
+.crit-critical { background: #fff; border-color: #dc2626; }
+.crit-high { background: #fff; border-color: #f59e0b; }
+.crit-medium { background: #fff; border-color: #facc15; }
+.crit-low { background: #fff; border-color: #22c55e; }
+
+.edge-sample {
+    width: 26px;
+    height: 3px;
+    display: inline-block;
+    flex: 0 0 auto;
+    background: var(--dt-muted-2, #94a3b8);
+    border-radius: 2px;
+}
+
+.edge-critical {
+    background: #e11d48;
+    height: 4px;
+}
+
+/* ---------- Node detail panel ---------- */
+.graph-node-panel {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 280px;
+    background: #fff;
+    border: 1px solid var(--dt-border, #e2e8f0);
+    border-radius: var(--dt-radius, 16px);
+    padding: 14px;
+    z-index: 15;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+}
+
+.graph-node-panel h6 {
+    font-weight: 600;
+}
+
+/* ---------- Filter panel ---------- */
+.graph-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 18px;
+    background: #fff;
+    border: 1px solid var(--dt-border, #e2e8f0);
+    border-radius: var(--dt-radius, 16px);
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    box-shadow: var(--dt-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.filter-group {
+    min-width: 150px;
+}
+
+.filter-title {
+    margin-bottom: 4px;
+    color: var(--dt-ink-2, #334155);
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.filter-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--dt-ink, #0f172a);
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-check input:checked {
+    background-color: var(--dt-primary, #4f46e5);
+    border-color: var(--dt-primary, #4f46e5);
+}
+
+.filter-actions {
+    align-self: center;
+    margin-left: auto;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    .graph-page {
+        height: calc(100vh - 148px);
+    }
+    .graph-toolbar-inner .row > div {
+        width: 100%;
+    }
+    .graph-node-panel {
+        width: 220px;
+    }
+    .filter-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+}

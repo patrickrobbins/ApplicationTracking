@@ -1,0 +1,76 @@
+@model DependencyTracker.Web.Models.ViewModels.PropertyDefinitionViewModel
+
+@{
+    ViewBag.Title = "Add Property Definition";
+}
+
+<div class="page-header mt-3 mb-4">
+    <h1 class="h3 mb-0">Add Property Definition</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("PropertyDefinitionCreate", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label">Key <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.Key, new { @class = "form-control", placeholder = "e.g. ApplicationLoggingAppCode" })
+                            @Html.ValidationMessageFor(m => m.Key, "", new { @class = "text-danger small" })
+                            <div class="form-text">Stable identifier used by the configuration scanner.</div>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label">Label <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.Label, new { @class = "form-control", placeholder = "e.g. Application Logging App Code" })
+                            @Html.ValidationMessageFor(m => m.Label, "", new { @class = "text-danger small" })
+                            <div class="form-text">Human-readable name shown on application forms.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Data Type <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.DataType, Model.DataTypeOptions, new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.DataType, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Sort Order</label>
+                            @Html.TextBoxFor(m => m.SortOrder, new { @class = "form-control", type = "number" })
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end mb-3">
+                            <div class="form-check form-switch">
+                                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+                                <label class="form-check-label" for="IsActive">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Scan Pattern</label>
+                            @Html.TextAreaFor(m => m.ScanPattern, new { @class = "form-control font-monospace", rows = 2, placeholder = "e.g. ApplicationLoggingAppCode" })
+                            @Html.ValidationMessageFor(m => m.ScanPattern, "", new { @class = "text-danger small" })
+                            <div class="form-text">
+                                Optional regular expression matched against configuration keys and values by the
+                                scanner to propose candidate dependencies.
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 2 })
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Add Definition</button>
+                        <a href="@Url.Action("PropertyDefinitions", "Admin")" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

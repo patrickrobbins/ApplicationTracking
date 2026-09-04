@@ -1,0 +1,655 @@
+@model DependencyTracker.Web.Models.ViewModels.ApplicationDetailViewModel
+@using DependencyTracker.Web.Models
+
+@{
+    ViewBag.Title = string.IsNullOrEmpty(Model.Application.Version)
+        ? Model.Application.Name
+        : Model.Application.Name + " " + Model.Application.Version;
+    Func<string, string> CritBadge = level => BadgeFor("crit", level);
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Application.Name</h1>
+        <div class="d-flex gap-2">
+            @if (!string.IsNullOrEmpty(Model.Application.Version))
+            {
+                <span class="badge bg-dark">v@(Model.Application.Version)</span>
+            }
+            <span class="badge @BadgeFor("env", Model.Application.Environment)">@Model.Application.Environment</span>
+            <span class="badge @BadgeFor("crit", Model.Application.CriticalityLevel)">@Model.Application.CriticalityLevel</span>
+            <span class="badge @BadgeFor("status", Model.Application.Status)">@Model.Application.Status</span>
+            <span class="badge @BadgeFor("cat", Model.Application.Category == null ? null : Model.Application.Category.Name)">@(Model.Application.Category == null ? "Uncategorized" : Model.Application.Category.Name)</span>
+            @if (Model.Application.IsDeleted)
+            {
+                <span class="badge bg-danger">Deleted</span>
+            }
+        </div>
+        @if (Model.OtherVersions != null && Model.OtherVersions.Any())
+        {
+            var otherVersions = Model.OtherVersions.ToList();
+            var versionLinks = string.Join(", ", otherVersions.Select(v =>
+                "<a href=\"" + Url.Action("Details", "Applications", new { id = v.ApplicationId }) + "\" class=\"text-decoration-none\">" +
+                System.Web.HttpUtility.HtmlEncode("v" + (v.Version ?? "")) + "</a>"));
+            <div class="small mt-1">
+                Other versions:
+                @Html.Raw(versionLinks)
+            </div>
+        }
+    </div>
+    <div class="btn-group">
+        <a href="@Url.Action("Index", "Graph", new { applicationId = Model.Application.ApplicationId })"
+           class="btn btn-outline-primary">View Dependency Graph</a>
+        @if (Model.CanEdit && !Model.Application.IsDeleted)
+        {
+            <a href="@Url.Action("Edit", "Applications", new { id = Model.Application.ApplicationId })"
+               class="btn btn-outline-secondary">Edit</a>
+            <a href="@Url.Action("Delete", "Applications", new { id = Model.Application.ApplicationId })"
+               class="btn btn-outline-danger">Delete</a>
+        }
+    </div>
+</div>
+
+@if (Model.Application.IsDeleted)
+{
+    <div class="alert alert-danger d-flex justify-content-between align-items-center mb-4">
+        <span>
+            <strong>This application is soft-deleted</strong> and hidden from the registry, graph and discovery.
+            It can be restored.
+        </span>
+        @if (Model.CanEdit)
+        {
+            using (Html.BeginForm("Restore", "Applications", new { id = Model.Application.ApplicationId }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-success ms-2">Restore Application</button>
+            }
+        }
+    </div>
+}
+
+@* Application metadata *@
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Details</div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Application.Description))
+                {
+                    <p class="mb-3">@Model.Application.Description</p>
+                }
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="small text-muted">Business Group</div>
+                            <div class="fw-semibold">@(Model.Application.BusinessGroup ?? "-")</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Business Owner</div>
+                            <div class="fw-semibold">@(Model.Application.BusinessOwner ?? "-")</div>
+                            <div class="small">
+                                @if (!string.IsNullOrEmpty(Model.Application.BusinessOwnerEmail))
+                                {
+                                    <a href="mailto:@Model.Application.BusinessOwnerEmail">@Model.Application.BusinessOwnerEmail</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Business Backup</div>
+                            <div class="fw-semibold">@(Model.Application.BusinessBackup ?? "-")</div>
+                            <div class="small">
+                                @if (!string.IsNullOrEmpty(Model.Application.BusinessBackupEmail))
+                                {
+                                    <a href="mailto:@Model.Application.BusinessBackupEmail">@Model.Application.BusinessBackupEmail</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Technical Owner</div>
+                            <div class="fw-semibold">@(Model.Application.TechnicalOwner ?? "-")</div>
+                            <div class="small">
+                                @if (!string.IsNullOrEmpty(Model.Application.TechnicalOwnerEmail))
+                                {
+                                    <a href="mailto:@Model.Application.TechnicalOwnerEmail">@Model.Application.TechnicalOwnerEmail</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="small text-muted">External URL</div>
+                            <div>
+                                @if (!string.IsNullOrEmpty(Model.Application.ExternalUrl))
+                                {
+                                    <a href="@Model.Application.ExternalUrl" target="_blank" rel="noopener">@Model.Application.ExternalUrl</a>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Source Path</div>
+                            <div class="fw-semibold text-break">@(Model.Application.SourcePath ?? "-")</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Last Modified</div>
+                            <div class="fw-semibold">@Model.Application.ModifiedDate.ToLocalTime().ToString("MMM d, yyyy HH:mm")</div>
+                            <div class="small text-muted">by @(Model.Application.ModifiedBy ?? "-")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Dependency Summary</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <div class="display-6 fw-bold text-info">@Model.UpstreamDependencies.Count()</div>
+                        <div class="small text-muted">Depends On<br />(Upstream)</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="display-6 fw-bold text-warning">@Model.DownstreamDependencies.Count()</div>
+                        <div class="small text-muted">Dependent Apps<br />(Downstream)</div>
+                    </div>
+                </div>
+                <hr />
+                <div id="mini-graph" class="mini-graph-container" data-application-id="@Model.Application.ApplicationId"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Technology & operations *@
+@if (Model.Technologies != null && Model.Technologies.Any()
+    || !string.IsNullOrEmpty(Model.Application.ApplicationIDE)
+    || !string.IsNullOrEmpty(Model.Application.FrameworkVersion)
+    || !string.IsNullOrEmpty(Model.Application.DocumentationLink)
+    || !string.IsNullOrEmpty(Model.Application.SourceControlLocation)
+    || !string.IsNullOrEmpty(Model.Application.HoursOfOperation)
+    || !string.IsNullOrEmpty(Model.Application.MaintenanceWindow)
+    || !string.IsNullOrEmpty(Model.Application.MaintenanceNotificationEmail)
+    || !string.IsNullOrEmpty(Model.Application.ApplicationSummary)
+    || !string.IsNullOrEmpty(Model.Application.TriageSteps))
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Technology &amp; Operations</div>
+        <div class="card-body">
+            @if (Model.Technologies != null && Model.Technologies.Any())
+            {
+                <div class="mb-3">
+                    <div class="small text-muted mb-1">Application Technologies</div>
+                    <div>
+                        @foreach (var tech in Model.Technologies)
+                        {
+                            <span class="badge bg-light text-dark border me-1">@tech.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="small text-muted">Application IDE</div>
+                        <div class="fw-semibold">@(Model.Application.ApplicationIDE ?? "-")</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="small text-muted">Framework Version</div>
+                        <div class="fw-semibold">@(Model.Application.FrameworkVersion ?? "-")</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="small text-muted">Documentation Link</div>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.Application.DocumentationLink))
+                            {
+                                <a href="@Model.Application.DocumentationLink" target="_blank" rel="noopener">@Model.Application.DocumentationLink</a>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="small text-muted">Source Control Location</div>
+                        <div class="fw-semibold text-break">@(Model.Application.SourceControlLocation ?? "-")</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <div class="small text-muted">Hours of Operation</div>
+                        <div class="fw-semibold">@(Model.Application.HoursOfOperation ?? "-")</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <div class="small text-muted">Maintenance Window</div>
+                        <div class="fw-semibold">@(Model.Application.MaintenanceWindow ?? "-")</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <div class="small text-muted">Maintenance Notification Email</div>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.Application.MaintenanceNotificationEmail))
+                            {
+                                <a href="mailto:@Model.Application.MaintenanceNotificationEmail">@Model.Application.MaintenanceNotificationEmail</a>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Application.ApplicationSummary))
+                {
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <div class="small text-muted">Application Summary</div>
+                            <div>@Model.Application.ApplicationSummary</div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Application.TriageSteps))
+                {
+                    <div class="col-12">
+                        <div class="mb-0">
+                            <div class="small text-muted">Triage Steps</div>
+                            <div>@Model.Application.TriageSteps</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* Application properties *@
+@if (Model.Properties != null && Model.Properties.Any())
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Properties</div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var p in Model.Properties)
+                {
+                    <div class="col-md-4 col-lg-3">
+                        <div class="small text-muted">@p.Label</div>
+                        <div class="fw-semibold text-break">@(string.IsNullOrWhiteSpace(p.Value) ? "-" : p.Value)</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* Libraries (DLLs) *@
+@if (Model.Dlls != null && (Model.Dlls.Any() || (Model.CanEdit && !string.IsNullOrEmpty(Model.Application.SourcePath))))
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">
+                Libraries (DLLs)
+                <span class="badge bg-secondary ms-1">@Model.Dlls.Count()</span>
+            </span>
+            @if (Model.CanEdit && !string.IsNullOrEmpty(Model.Application.SourcePath))
+            {
+                using (Html.BeginForm("ScanDlls", "Applications", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("id", Model.Application.ApplicationId)
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Scan DLLs</button>
+                }
+            }
+        </div>
+        @if (Model.Dlls.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Assembly / File</th>
+                            <th>Version</th>
+                            <th class="d-none d-md-table-cell">Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dll in Model.Dlls)
+                        {
+                            <tr>
+                                <td class="font-monospace">@dll.FileName</td>
+                                <td class="font-monospace">@(string.IsNullOrWhiteSpace(dll.Version) ? "-" : dll.Version)</td>
+                                <td class="d-none d-md-table-cell small text-muted text-break">@(string.IsNullOrWhiteSpace(dll.RelativePath) ? "-" : dll.RelativePath)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body">
+                <p class="text-muted mb-0">
+                    No DLLs recorded yet.
+                    @if (Model.CanEdit && !string.IsNullOrEmpty(Model.Application.SourcePath))
+                    {
+                        <text>Click <strong>Scan DLLs</strong> to read the deployed libraries from the source path (directory and subdirectories, e.g. bin).</text>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+}
+
+@* Upstream & downstream tables *@
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">
+                Depends On (Upstream)
+                <span class="badge bg-info text-dark ms-1">@Model.UpstreamDependencies.Count()</span>
+            </div>
+            <div class="card-body py-2">
+                <div class="small text-muted">
+                    All applications this depends on, direct or indirect. <span class="badge bg-primary">Direct</span> = 1 hop;
+                    <span class="badge bg-secondary">Level N</span> = N hops away.
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Application</th>
+                            <th>Path</th>
+                            <th>Level</th>
+                            <th>Type</th>
+                            <th>Critical</th>
+                            @if (Model.CanEdit) { <th class="text-end">Action</th> }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.UpstreamDependencies.Any())
+                        {
+                            <tr><td colspan="6" class="text-muted text-center py-3">No upstream dependencies.</td></tr>
+                        }
+                        @foreach (var dep in Model.UpstreamDependencies)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "Applications", new { id = dep.ApplicationId })"
+                                       class="fw-semibold text-decoration-none">@dep.Name</a>
+                                    @if (!string.IsNullOrEmpty(dep.Category))
+                                    {
+                                        <div class="small text-muted">@dep.Category</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (dep.Chain != null && dep.Chain.Any())
+                                    {
+                                        <span class="small text-nowrap">
+                                            <a href="@Url.Action("Details", "Applications", new { id = Model.Application.ApplicationId })">@Model.Application.Name</a>
+                                            @foreach (var step in dep.Chain)
+                                            {
+                                                <text> &rarr; </text><a href="@Url.Action("Details", "Applications", new { id = step.ApplicationId })">@step.Name</a>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">&mdash;</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (dep.IsDirect)
+                                    {
+                                        <span class="badge bg-primary">Direct</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary" title="Indirect dependency">Level @dep.Depth</span>
+                                    }
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@dep.DependencyTypes</span></td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(dep.CriticalityLevel))
+                                    {
+                                        <span class="badge @CritBadge(dep.CriticalityLevel)">@dep.CriticalityLevel</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                @if (Model.CanEdit)
+                                {
+                                    <td class="text-end">
+                                        @if (dep.IsDirect)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                    onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                                Remove
+                                            </button>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.CanEdit)
+            {
+                <div class="card-footer bg-white">
+                    <a href="@Url.Action("Create", "Dependencies", new { sourceId = Model.Application.ApplicationId })"
+                       class="btn btn-sm btn-outline-primary">+ Add Upstream Dependency</a>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">
+                Dependent Applications (Downstream)
+                <span class="badge bg-warning text-dark ms-1">@Model.DownstreamDependencies.Count()</span>
+            </div>
+            <div class="card-body py-2">
+                <div class="small text-muted">
+                    All applications that depend on this one, direct or indirect. <span class="badge bg-primary">Direct</span> = 1 hop;
+                    <span class="badge bg-secondary">Level N</span> = N hops away.
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Application</th>
+                            <th>Path</th>
+                            <th>Level</th>
+                            <th>Type</th>
+                            <th>Critical</th>
+                            @if (Model.CanEdit) { <th class="text-end">Action</th> }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.DownstreamDependencies.Any())
+                        {
+                            <tr><td colspan="6" class="text-muted text-center py-3">No downstream dependents.</td></tr>
+                        }
+                        @foreach (var dep in Model.DownstreamDependencies)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "Applications", new { id = dep.ApplicationId })"
+                                       class="fw-semibold text-decoration-none">@dep.Name</a>
+                                    @if (!string.IsNullOrEmpty(dep.Category))
+                                    {
+                                        <div class="small text-muted">@dep.Category</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (dep.Chain != null && dep.Chain.Any())
+                                    {
+                                        <span class="small text-nowrap">
+                                            <a href="@Url.Action("Details", "Applications", new { id = Model.Application.ApplicationId })">@Model.Application.Name</a>
+                                            @foreach (var step in dep.Chain)
+                                            {
+                                                <text> &rarr; </text><a href="@Url.Action("Details", "Applications", new { id = step.ApplicationId })">@step.Name</a>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">&mdash;</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (dep.IsDirect)
+                                    {
+                                        <span class="badge bg-primary">Direct</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary" title="Indirect dependent">Level @dep.Depth</span>
+                                    }
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@dep.DependencyTypes</span></td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(dep.CriticalityLevel))
+                                    {
+                                        <span class="badge @CritBadge(dep.CriticalityLevel)">@dep.CriticalityLevel</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                @if (Model.CanEdit)
+                                {
+                                    <td class="text-end">
+                                        @if (dep.IsDirect)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                    onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                                Remove
+                                            </button>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.CanEdit)
+            {
+                <div class="card-footer bg-white">
+                    <a href="@Url.Action("Create", "Dependencies", new { targetId = Model.Application.ApplicationId })"
+                       class="btn btn-sm btn-outline-primary">+ Add Downstream Dependent</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section scripts {
+    @Scripts.Render("~/bundles/cytoscape")
+    @Scripts.Render("~/bundles/graph")
+    <script>
+        function confirmDeleteDependency(dependencyId, appId, appName) {
+            if (!confirm('Remove dependency on "' + appName + '"? This cannot be undone.')) return;
+            $.ajax({
+                url: '@Url.Action("Delete", "Dependencies")',
+                type: 'POST',
+                data: {
+                    id: dependencyId,
+                    returnApplicationId: appId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () { location.reload(); },
+                error: function () { alert('Failed to remove dependency.'); }
+            });
+        }
+
+        $(function () {
+            var container = $('#mini-graph');
+            if (container.length && typeof DTCy === 'function') {
+                DTCy.initMiniGraph(container);
+            }
+        });
+    </script>
+}
+
+@functions {
+    private string BadgeFor(string type, string value)
+    {
+        if (type == "env")
+        {
+            switch (value)
+            {
+                case "Production": return "bg-danger";
+                case "Staging": return "bg-warning text-dark";
+                case "Development": return "bg-secondary";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "crit")
+        {
+            switch (value)
+            {
+                case "Critical": return "bg-danger";
+                case "High": return "bg-warning text-dark";
+                case "Medium": return "bg-info text-dark";
+                case "Low": return "bg-success";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "status")
+        {
+            switch (value)
+            {
+                case "Active": return "bg-success";
+                case "Planned": return "bg-info text-dark";
+                case "Retired": return "bg-dark";
+                default: return "bg-secondary";
+            }
+        }
+        if (type == "cat")
+        {
+            switch (value)
+            {
+                case "Internal": return "bg-primary";
+                case "External": return "bg-warning text-dark";
+                case "Library": return "bg-info text-dark";
+                case "Database": return "bg-secondary";
+                case "Active Directory": return "bg-dark";
+                default: return "bg-light text-dark border";
+            }
+        }
+        return "bg-secondary";
+    }
+}

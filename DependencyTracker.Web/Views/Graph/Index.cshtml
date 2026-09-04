@@ -1,0 +1,170 @@
+@model DependencyTracker.Web.Models.ViewModels.GraphPageViewModel
+@using DependencyTracker.Web.Models
+
+@{
+    ViewBag.Title = "Dependency Graph";
+}
+
+<div class="graph-page">
+    <div class="graph-toolbar">
+        <div class="graph-toolbar-inner">
+            <form id="graph-controls" class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label small text-muted mb-1">Application</label>
+                    <select id="graph-app" class="form-select form-select-sm">
+                        <option value="" selected>Select application...</option>
+                        <option value="all">All applications</option>
+                        @foreach (var app in Model.Applications)
+                        {
+                            <option value="@app.ApplicationId" @(app.ApplicationId == Model.SelectedApplicationId ? "selected" : "")>
+                                @(app.Name + (string.IsNullOrEmpty(app.Version) ? "" : " " + app.Version))
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small text-muted mb-1">Direction</label>
+                    <select id="graph-direction" class="form-select form-select-sm">
+                        <option value="Both" @(Model.Direction == "Both" ? "selected" : "")>Upstream &amp; Downstream</option>
+                        <option value="Upstream" @(Model.Direction == "Upstream" ? "selected" : "")>Upstream (depends on)</option>
+                        <option value="Downstream" @(Model.Direction == "Downstream" ? "selected" : "")>Downstream (dependents)</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small text-muted mb-1">Depth</label>
+                    <select id="graph-depth" class="form-select form-select-sm">
+                        <option value="0" @(Model.MaxDepth == 0 ? "selected" : "")>All</option>
+                        @for (int d = 1; d <= 6; d++)
+                        {
+                            <option value="@d" @(Model.MaxDepth == d ? "selected" : "")>@d level(s)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-primary">Render</button>
+                </div>
+                <div class="col-auto ms-auto">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-fit">Fit</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" />
+                            <line x1="10.8" y1="10.8" x2="14.2" y2="14.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <line x1="7" y1="4.6" x2="7" y2="9.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <line x1="4.6" y1="7" x2="9.4" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" />
+                            <line x1="10.8" y1="10.8" x2="14.2" y2="14.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <line x1="4.6" y1="7" x2="9.4" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-expand">Expand Chain</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-reset">Reset</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-filters">Filters</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-export-png">Export PNG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="graph-filters d-none">
+        <div class="filter-group">
+            <div class="filter-title small fw-semibold">Environment</div>
+            <div id="filter-environment" class="filter-options"></div>
+        </div>
+        <div class="filter-group">
+            <div class="filter-title small fw-semibold">Criticality</div>
+            <div id="filter-criticality" class="filter-options"></div>
+        </div>
+        <div class="filter-group">
+            <div class="filter-title small fw-semibold">Status</div>
+            <div id="filter-status" class="filter-options"></div>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn btn-sm btn-link" id="btn-clear-filters">Clear filters</button>
+        </div>
+    </div>
+
+    <div class="graph-main">
+        <div id="cy"></div>
+
+        @* Empty state when no application is selected yet *@
+        <div id="graph-empty" class="graph-empty d-none">
+            <div class="graph-empty-icon">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.6" />
+                    <circle cx="18" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" />
+                    <circle cx="6" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" />
+                    <path d="M8 7 L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    <path d="M8 17 L8 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                </svg>
+            </div>
+            <p class="mb-0">Select an application, or choose "All applications", to render the dependency graph.</p>
+        </div>
+
+        @* Loading overlay *@
+        <div id="graph-loading" class="graph-loading d-none">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2">Loading dependency graph...</div>
+        </div>
+
+        @* Level legend *@
+        <div class="graph-legend">
+            <div class="legend-title small fw-semibold">Level</div>
+            <div class="legend-item"><span class="level-chip level-0"></span> L0 - Root</div>
+            <div class="legend-item"><span class="level-chip level-1"></span> L1</div>
+            <div class="legend-item"><span class="level-chip level-2"></span> L2</div>
+            <div class="legend-item"><span class="level-chip level-3"></span> L3+</div>
+            <hr class="my-1" />
+            <div class="legend-title small fw-semibold">Orientation</div>
+            <div class="legend-item small text-muted">&larr; Downstream (dependents)</div>
+            <div class="legend-item small text-muted">Upstream (dependencies) &rarr;</div>
+        </div>
+
+        @* Criticality legend *@
+        <div class="graph-legend graph-legend-right">
+            <div class="legend-title small fw-semibold">Criticality</div>
+            <div class="legend-item"><span class="crit-chip crit-critical"></span> Critical</div>
+            <div class="legend-item"><span class="crit-chip crit-high"></span> High</div>
+            <div class="legend-item"><span class="crit-chip crit-medium"></span> Medium</div>
+            <div class="legend-item"><span class="crit-chip crit-low"></span> Low</div>
+            <hr class="my-1" />
+            <div class="legend-title small fw-semibold">Edge</div>
+            <div class="legend-item"><span class="edge-sample edge-critical"></span> Critical</div>
+            <div class="legend-item"><span class="edge-sample"></span> Standard</div>
+        </div>
+
+        @* Node detail panel *@
+        <div id="node-panel" class="graph-node-panel d-none">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0" id="node-panel-title"></h6>
+                <button type="button" class="btn-close" id="node-panel-close" aria-label="Close"></button>
+            </div>
+            <div class="small" id="node-panel-body"></div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/cytoscape")
+    @Scripts.Render("~/bundles/graph")
+    <script>
+        $(function () {
+            var initialAppId = @Html.Raw(Model.SelectedApplicationId.HasValue
+                ? Model.SelectedApplicationId.Value.ToString()
+                : "null");
+
+            DTCy.initGraph({
+                container: '#cy',
+                initialApplicationId: initialAppId,
+                initialDirection: '@Model.Direction',
+                initialDepth: @Model.MaxDepth,
+                canEdit: @(Model.CanEdit ? "true" : "false"),
+                detailsUrlTemplate: '@Url.Action("Details", "Applications", new { id = "__ID__" })',
+                graphUrl: '@Url.Action("Graph", "Api")'
+            });
+        });
+    </script>
+}

@@ -1,0 +1,77 @@
+@model IEnumerable<DependencyTracker.Data.Models.ApplicationTechnology>
+
+@{
+    ViewBag.Title = "Technologies";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Application Technologies</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("TechnologyCreate", "Admin")" class="btn btn-primary">+ New Technology</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">Back to Admin</a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    Technologies are tags applied to applications (for example:
+    <strong>.NET Framework</strong>, <strong>ASP.NET</strong>, <strong>SQL Server</strong>,
+    <strong>Angular</strong>). They are used to search and filter the application
+    registry and are selected on the application create/edit form.
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Sort</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@t.Name</td>
+                        <td class="text-muted">@(t.Description ?? "-")</td>
+                        <td><span class="badge bg-light text-dark border">@t.SortOrder</span></td>
+                        <td>
+                            @if (t.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("TechnologyEdit", "Admin", new { id = t.TechnologyId })"
+                               class="btn btn-sm btn-outline-secondary">Edit</a>
+                            @using (Html.BeginForm("TechnologyToggle", "Admin", new { id = t.TechnologyId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(t.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                            @using (Html.BeginForm("TechnologyDelete", "Admin", new { id = t.TechnologyId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove technology \'@t.Name\'? Applications no longer carry the tag.');">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-muted text-center py-3">No technologies configured.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

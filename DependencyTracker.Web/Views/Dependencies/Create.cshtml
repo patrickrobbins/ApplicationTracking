@@ -1,0 +1,102 @@
+@model DependencyTracker.Web.Models.ViewModels.DependencyFormViewModel
+
+@{
+    ViewBag.Title = "Add Dependency";
+}
+
+<div class="page-header mt-3 mb-4">
+    <h1 class="h3 mb-0">Add Dependency</h1>
+    <p class="text-muted mb-0">
+        A dependency records that <strong>Source</strong> depends on <strong>Target</strong>.
+        The Target is the provider of the API, database, file, etc.
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Source Application <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.SourceApplicationId, Model.ApplicationOptions, "Select application...", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.SourceApplicationId, "", new { @class = "text-danger small" })
+                            <div class="form-text">The application that makes the call / uses the resource.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Target Application <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.TargetApplicationId, Model.ApplicationOptions, "Select application...", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.TargetApplicationId, "", new { @class = "text-danger small" })
+                            <div class="form-text">The application being depended upon (provider).</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Dependency Type <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.DependencyType, Model.TypeOptions, new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Direction</label>
+                            @Html.DropDownListFor(m => m.Direction, Model.DirectionOptions, new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Criticality</label>
+                            @Html.DropDownListFor(m => m.CriticalityLevel, Model.CriticalityOptions, new { @class = "form-select" })
+                            <div class="form-text">Default from the provider app when pre-filled.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Frequency</label>
+                            @Html.DropDownListFor(m => m.Frequency, Model.FrequencyOptions, "Select...", new { @class = "form-select" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Impact</label>
+                            @Html.TextAreaFor(m => m.Impact, new { @class = "form-control", rows = 2, placeholder = "What stops working if the provider is down..." })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "e.g. SSO login flow, nightly extract..." })
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">Add Dependency</button>
+                        <a href="@Url.Action("Index", "Dependencies")" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(function () {
+            // Prevent selecting the same application as both source and target
+            function enforceDistinct() {
+                var s = $('#SourceApplicationId').val();
+                var t = $('#TargetApplicationId').val();
+                if (s && t && s === t) {
+                    alert('Source and Target cannot be the same application.');
+                    $('#TargetApplicationId').val('');
+                }
+            }
+            $('#SourceApplicationId').change(enforceDistinct);
+            $('#TargetApplicationId').change(enforceDistinct);
+
+            // Pre-fill criticality/impact from the selected provider's defaults
+            $('#TargetApplicationId').change(function () {
+                var targetId = $(this).val();
+                if (!targetId) return;
+                $.post('@Url.Action("TargetDefaults", "Dependencies")', { id: targetId }, function (data) {
+                    if (!data || !data.success) return;
+                    $('#CriticalityLevel').val(data.criticality || 'Low');
+                    $('#Impact').val(data.impact || '');
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,114 @@
+@model DependencyTracker.Web.Models.ViewModels.AdminIndexViewModel
+
+@{
+    ViewBag.Title = "Administration";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Administration</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("AdGroups", "Admin")" class="btn btn-outline-primary">Manage AD Groups</a>
+        <a href="@Url.Action("Categories", "Admin")" class="btn btn-outline-primary">Categories</a>
+        <a href="@Url.Action("Technologies", "Admin")" class="btn btn-outline-primary">Technologies</a>
+        <a href="@Url.Action("PropertyDefinitions", "Admin")" class="btn btn-outline-primary">Property Definitions</a>
+        <a href="@Url.Action("ActivityLog", "Admin")" class="btn btn-outline-secondary">Activity Log</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-4">
+        <div class="stat-card stat-primary">
+            <div class="stat-value">@Model.TotalGroups</div>
+            <div class="stat-label">Configured AD Groups</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <div class="stat-card stat-success">
+            <div class="stat-value">@Model.ActiveGroups</div>
+            <div class="stat-label">Active AD Groups</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Role Assignments</div>
+            <div class="card-body">
+                @foreach (var role in new[] { "Admin", "Maintenance", "Viewer" })
+                {
+                    <div class="d-flex justify-content-between border-bottom py-1">
+                        <span>@role</span>
+                        <span class="badge bg-light text-dark border">
+                            @(Model.RoleAssignments.ContainsKey(role) ? Model.RoleAssignments[role] : 0) group(s)
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">AD Groups</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Group</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var g in Model.Groups.Take(10))
+                        {
+                            <tr>
+                                <td class="small">@g.GroupName</td>
+                                <td><span class="badge bg-light text-dark border">@g.Role</span></td>
+                                <td>
+                                    @if (g.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Groups.Any())
+                        {
+                            <tr><td colspan="3" class="text-muted text-center py-3">No AD groups configured.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="@Url.Action("AdGroups", "Admin")" class="btn btn-sm btn-outline-primary">Manage All Groups</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Recent Activity</div>
+            <div class="card-body">
+                <ul class="activity-feed list-unstyled mb-0">
+                    @foreach (var log in Model.RecentActivity)
+                    {
+                        <li class="mb-2 border-bottom pb-2">
+                            <div class="d-flex justify-content-between">
+                                <strong class="small">@log.EntityName</strong>
+                                <span class="text-muted small">@log.PerformedDate.ToLocalTime().ToString("MMM d, HH:mm")</span>
+                            </div>
+                            <div class="small text-muted">@log.Action · @log.EntityType · @log.PerformedBy</div>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="@Url.Action("ActivityLog", "Admin")" class="btn btn-sm btn-outline-primary">View Full Log</a>
+            </div>
+        </div>
+    </div>
+</div>

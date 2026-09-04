@@ -1,0 +1,82 @@
+@model IEnumerable<DependencyTracker.Data.Models.AdGroup>
+
+@{
+    ViewBag.Title = "AD Groups";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Active Directory Group Configuration</h1>
+    <a href="@Url.Action("AdGroupCreate", "Admin")" class="btn btn-primary">+ Add AD Group</a>
+</div>
+
+<div class="alert alert-info">
+    Members of the groups listed below receive the corresponding application roles.
+    Group names use the <code>DOMAIN\GroupName</code> format. Users are always
+    granted the <strong>Viewer</strong> role.
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Group Name</th>
+                    <th>Role</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var g in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@g.GroupName</td>
+                        <td><span class="badge @RoleBadge(g.Role)">@g.Role</span></td>
+                        <td class="small text-muted">@g.Description</td>
+                        <td>
+                            @if (g.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("AdGroupEdit", "Admin", new { id = g.GroupId })"
+                               class="btn btn-sm btn-outline-secondary">Edit</a>
+                            @using (Html.BeginForm("AdGroupToggle", "Admin", new { id = g.GroupId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(g.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                            @using (Html.BeginForm("AdGroupDelete", "Admin", new { id = g.GroupId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove this AD group mapping?');">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@functions {
+    private string RoleBadge(string role)
+    {
+        switch (role)
+        {
+            case "Admin": return "bg-danger";
+            case "Maintenance": return "bg-warning text-dark";
+            case "Viewer": return "bg-info text-dark";
+            default: return "bg-secondary";
+        }
+    }
+}

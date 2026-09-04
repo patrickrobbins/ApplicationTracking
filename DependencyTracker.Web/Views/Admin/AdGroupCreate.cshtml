@@ -1,0 +1,55 @@
+@model DependencyTracker.Web.Models.ViewModels.AdGroupViewModel
+
+@{
+    ViewBag.Title = "Add AD Group";
+}
+
+<div class="page-header mt-3 mb-4">
+    <h1 class="h3 mb-0">Add AD Group</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("AdGroupCreate", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        <label class="form-label">Group Name <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(m => m.GroupName, new { @class = "form-control", placeholder = "DOMAIN\\GroupName" })
+                        @Html.ValidationMessageFor(m => m.GroupName, "", new { @class = "text-danger small" })
+                        <div class="form-text">Use the NETBIOS format, e.g. CORP\DependencyTracker_Admins</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        @Html.DropDownListFor(m => m.Role, Model.RoleOptions, new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Role, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+                        <label class="form-check-label" for="IsActive">Active</label>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn btn-primary">Add Group</button>
+                        <a href="@Url.Action("AdGroups", "Admin")" class="btn btn-outline-secondary ms-1">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

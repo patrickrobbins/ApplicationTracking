@@ -1,0 +1,260 @@
+@model DependencyTracker.Web.Models.ViewModels.DashboardViewModel
+@using DependencyTracker.Data.Models
+@using DependencyTracker.Web.Models
+
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Application Dependency Dashboard</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("Index", "Graph")" class="btn btn-outline-primary">
+            <i class="bi"></i> Open Dependency Graph
+        </a>
+        @if (ViewBag.CanEdit)
+        {
+            <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">Add Application</a>
+        }
+    </div>
+</div>
+
+@* Summary stat cards *@
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">App</div>
+            <div class="stat-value">@Model.TotalApplications</div>
+            <div class="stat-label">Total Applications</div>
+            <div class="stat-sub">@Model.ActiveApplications active</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card stat-info">
+            <div class="stat-icon">⇄</div>
+            <div class="stat-value">@Model.TotalDependencies</div>
+            <div class="stat-label">Total Dependencies</div>
+            <div class="stat-sub">@Model.CriticalDependencies critical</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">!</div>
+            <div class="stat-value">@Model.CriticalDependencies</div>
+            <div class="stat-label">Critical Dependencies</div>
+            <div class="stat-sub">Highest risk</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card stat-muted">
+            <div class="stat-icon">•</div>
+            <div class="stat-value">@Model.ApplicationsWithNoDependencies</div>
+            <div class="stat-label">Isolated Applications</div>
+            <div class="stat-sub">No recorded dependencies</div>
+        </div>
+    </div>
+</div>
+
+@* Distribution + recent activity *@
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Applications by Environment</div>
+            <div class="card-body">
+                @if (Model.ByEnvironment.Count == 0)
+                {
+                    <p class="text-muted mb-0">No data available.</p>
+                }
+                else
+                {
+                    var maxEnv = Model.ByEnvironment.Values.Max();
+                    foreach (var kvp in Model.ByEnvironment.OrderByDescending(k => k.Value))
+                    {
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small">
+                                <span>@kvp.Key</span>
+                                <span class="text-muted">@kvp.Value</span>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar bg-info" role="progressbar"
+                                     style="width: @((kvp.Value * 100 / (maxEnv == 0 ? 1 : maxEnv)))%;"></div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Applications by Criticality</div>
+            <div class="card-body">
+                @if (Model.ByCriticality.Count == 0)
+                {
+                    <p class="text-muted mb-0">No data available.</p>
+                }
+                else
+                {
+                    var maxCrit = Model.ByCriticality.Values.Max();
+                    foreach (var kvp in Model.ByCriticality.OrderBy(k => CriticalityRank(k.Key)))
+                    {
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small">
+                                <span>@kvp.Key</span>
+                                <span class="text-muted">@kvp.Value</span>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar @CriticalityBar(kvp.Key)" role="progressbar"
+                                     style="width: @((kvp.Value * 100 / (maxCrit == 0 ? 1 : maxCrit)))%;"></div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Recent Activity</div>
+            <div class="card-body">
+                @if (!Model.RecentActivity.Any())
+                {
+                    <p class="text-muted mb-0">No recent activity.</p>
+                }
+                else
+                {
+                    <ul class="activity-feed list-unstyled mb-0">
+                        @foreach (var log in Model.RecentActivity)
+                        {
+                            <li class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="small">@log.EntityName</strong>
+                                    <span class="text-muted small">@log.PerformedDate.ToLocalTime().ToString("MMM d, HH:mm")</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <span class="badge badge-@ActionBadge(log.Action)">@log.Action</span>
+                                    @log.PerformedBy
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Recently modified applications *@
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Recently Modified Applications</span>
+                <a href="@Url.Action("Index", "Applications")" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Application</th>
+                            <th>Environment</th>
+                            <th>Criticality</th>
+                            <th>Status</th>
+                            <th>Modified</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in Model.RecentApplications)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "Applications", new { id = app.ApplicationId })" class="fw-semibold text-decoration-none">@app.Name</a>
+                                </td>
+                                <td><span class="badge @EnvironmentBadge(app.Environment)">@app.Environment</span></td>
+                                <td><span class="badge @CriticalityBadge(app.CriticalityLevel)">@app.CriticalityLevel</span></td>
+                                <td><span class="badge @StatusBadge(app.Status)">@app.Status</span></td>
+                                <td class="text-muted small">@app.ModifiedDate.ToLocalTime().ToString("MMM d, yyyy")</td>
+                                <td class="text-end">
+                                    <a href="@Url.Action("Index", "Graph", new { applicationId = app.ApplicationId })"
+                                       class="btn btn-sm btn-outline-secondary" title="View in graph">Graph</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private int CriticalityRank(string level)
+    {
+        switch (level)
+        {
+            case "Critical": return 0;
+            case "High": return 1;
+            case "Medium": return 2;
+            case "Low": return 3;
+            default: return 4;
+        }
+    }
+
+    private string CriticalityBar(string level)
+    {
+        switch (level)
+        {
+            case "Critical": return "bg-danger";
+            case "High": return "bg-warning";
+            case "Medium": return "bg-info";
+            case "Low": return "bg-success";
+            default: return "bg-secondary";
+        }
+    }
+
+    private string CriticalityBadge(string level)
+    {
+        switch (level)
+        {
+            case "Critical": return "bg-danger";
+            case "High": return "bg-warning text-dark";
+            case "Medium": return "bg-info text-dark";
+            case "Low": return "bg-success";
+            default: return "bg-secondary";
+        }
+    }
+
+    private string EnvironmentBadge(string env)
+    {
+        switch (env)
+        {
+            case "Production": return "bg-danger";
+            case "Staging": return "bg-warning text-dark";
+            case "Development": return "bg-secondary";
+            default: return "bg-secondary";
+        }
+    }
+
+    private string StatusBadge(string status)
+    {
+        switch (status)
+        {
+            case "Active": return "bg-success";
+            case "Planned": return "bg-info text-dark";
+            case "Retired": return "bg-dark";
+            default: return "bg-secondary";
+        }
+    }
+
+    private string ActionBadge(string action)
+    {
+        switch (action)
+        {
+            case "Created": return "badge-success";
+            case "Updated": return "badge-info";
+            case "Deleted": return "badge-danger";
+            default: return "badge-secondary";
+        }
+    }
+}

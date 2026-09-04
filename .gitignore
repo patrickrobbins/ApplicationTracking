@@ -1,0 +1,40 @@
+## Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.userprefs
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+obj/
+App_Data/
+*.cache
+*.pdb
+*.user
+
+## Packages
+packages/
+*.nupkg
+nuget.exe
+
+## Build / test results
+build.log
+*.log
+TestResults/
+
+## Database local files
+Database/*.mdf
+Database/*.ldf
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## IIS Express runtime files
+iisexpress.applicationhost.config
+*.err.log
+*.out.log

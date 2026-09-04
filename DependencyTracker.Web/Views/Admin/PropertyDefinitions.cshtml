@@ -1,0 +1,80 @@
+@model IEnumerable<DependencyTracker.Data.Models.ApplicationPropertyDefinition>
+
+@{
+    ViewBag.Title = "Property Definitions";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Property Definitions</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("PropertyDefinitionCreate", "Admin")" class="btn btn-primary">+ New Definition</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">Back to Admin</a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    Property definitions drive the dynamic per-application fields shown on the
+    application <strong>Edit</strong> and <strong>Details</strong> pages. An
+    optional <strong>scan pattern</strong> (regular expression) is matched against
+    configuration keys and values by the configuration scanner to propose
+    candidate dependencies.
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Key</th>
+                    <th>Label</th>
+                    <th>Type</th>
+                    <th>Scan Pattern</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@d.Key</td>
+                        <td>@d.Label</td>
+                        <td><span class="badge bg-light text-dark border">@d.DataType</span></td>
+                        <td><code class="small">@(d.ScanPattern ?? "-")</code></td>
+                        <td>
+                            @if (d.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("PropertyDefinitionEdit", "Admin", new { id = d.PropertyDefinitionId })"
+                               class="btn btn-sm btn-outline-secondary">Edit</a>
+                            @using (Html.BeginForm("PropertyDefinitionToggle", "Admin", new { id = d.PropertyDefinitionId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(d.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                            @using (Html.BeginForm("PropertyDefinitionDelete", "Admin", new { id = d.PropertyDefinitionId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove definition \'@d.Key\'? Its stored values will also be removed.');">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-muted text-center py-3">No property definitions configured.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
