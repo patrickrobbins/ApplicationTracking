@@ -258,5 +258,6 @@
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll'))" />
     <Error Condition="!Exists('..\packages\Autofac.6.5.0\lib\netstandard2.0\Autofac.dll')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Autofac.6.5.0\lib\netstandard2.0\Autofac.dll'))" />
     <Error Condition="!Exists('..\packages\Autofac.Mvc5.6.0.0\lib\net472\Autofac.Integration.Mvc.dll')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Autofac.Mvc5.6.0.0\lib\net472\Autofac.Integration.Mvc.dll'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.AspNet.WebApi.Client.5.2.9\lib\net45\System.Net.Http.Formatting.dll')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.AspNet.WebApi.Client.5.2.9\lib\net45\System.Net.Http.Formatting.dll'))" />
   </Target>
 </Project>
