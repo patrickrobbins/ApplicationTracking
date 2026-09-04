@@ -45,9 +45,6 @@ namespace DependencyTracker.Data.Models
         public string BusinessBackupEmail { get; set; }
 
         [StringLength(200)]
-        public string TechnicalOwner { get; set; }
-
-        [StringLength(200)]
         public string TechnicalOwnerEmail { get; set; }
 
         [StringLength(50)]
@@ -125,6 +122,16 @@ namespace DependencyTracker.Data.Models
         [ForeignKey("CategoryId")]
         public virtual ApplicationCategory Category { get; set; }
 
+        public int? FamilyId { get; set; }
+
+        [ForeignKey("FamilyId")]
+        public virtual ApplicationFamily Family { get; set; }
+
+        public int? TechnicalOwnershipTeamId { get; set; }
+
+        [ForeignKey("TechnicalOwnershipTeamId")]
+        public virtual TechnicalOwnershipTeam TechnicalOwnershipTeam { get; set; }
+
         /// <summary>
         /// Soft-delete flag. Deleted applications are hidden from the registry,
         /// graph and discovery but kept in the database so they can be restored.
@@ -153,12 +160,16 @@ namespace DependencyTracker.Data.Models
         [InverseProperty("Application")]
         public virtual ICollection<ApplicationTechnologyMapping> TechnologyMappings { get; set; }
 
+        [InverseProperty("Application")]
+        public virtual ICollection<ApplicationTagMapping> TagMappings { get; set; }
+
         public Application()
         {
             OutgoingDependencies = new HashSet<Dependency>();
             IncomingDependencies = new HashSet<Dependency>();
             Dlls = new HashSet<ApplicationDll>();
             TechnologyMappings = new HashSet<ApplicationTechnologyMapping>();
+            TagMappings = new HashSet<ApplicationTagMapping>();
         }
     }
 }

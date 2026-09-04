@@ -1,0 +1,77 @@
+@model IEnumerable<DependencyTracker.Data.Models.TechnicalOwnershipTeam>
+
+@{
+    ViewBag.Title = "Technical Ownership Teams";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Technical Ownership Teams</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("TeamCreate", "Admin")" class="btn btn-primary">+ New Team</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">Back to Admin</a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    Technical ownership teams own the technical operation of applications (for example:
+    <strong>Platform Team</strong>, <strong>Commerce Team</strong>, <strong>Finance IT</strong>,
+    <strong>Risk Team</strong>). Each application is assigned one team; the list is maintained
+    here and selected on the application create/edit form.
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Sort</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@t.Name</td>
+                        <td class="text-muted">@(t.Description ?? "-")</td>
+                        <td><span class="badge bg-light text-dark border">@t.SortOrder</span></td>
+                        <td>
+                            @if (t.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("TeamEdit", "Admin", new { id = t.TeamId })"
+                               class="btn btn-sm btn-outline-secondary">Edit</a>
+                            @using (Html.BeginForm("TeamToggle", "Admin", new { id = t.TeamId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(t.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                            @using (Html.BeginForm("TeamDelete", "Admin", new { id = t.TeamId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove team \'@t.Name\'? Applications using it no longer have a technical ownership team.');">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-muted text-center py-3">No teams configured.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -47,9 +47,9 @@ namespace DependencyTracker.Data.Services
             return _applicationRepository.GetVersionsByName(name);
         }
 
-        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, bool includeDeleted)
+        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, string sortBy, bool includeDeleted)
         {
-            return _applicationRepository.Search(term, environment, status, criticality, categoryId, version, technologyId, includeDeleted);
+            return _applicationRepository.Search(term, environment, status, criticality, categoryId, version, technologyId, familyId, tagId, sortBy, includeDeleted);
         }
 
         public Application Create(Application application, string user)
@@ -85,9 +85,10 @@ namespace DependencyTracker.Data.Services
             existing.BusinessOwnerEmail = application.BusinessOwnerEmail;
             existing.BusinessBackup = application.BusinessBackup;
             existing.BusinessBackupEmail = application.BusinessBackupEmail;
-            existing.TechnicalOwner = application.TechnicalOwner;
             existing.TechnicalOwnerEmail = application.TechnicalOwnerEmail;
             existing.CategoryId = application.CategoryId;
+            existing.FamilyId = application.FamilyId;
+            existing.TechnicalOwnershipTeamId = application.TechnicalOwnershipTeamId;
             existing.Environment = application.Environment;
             existing.CriticalityLevel = application.CriticalityLevel;
             existing.DefaultDependencyCriticality = application.DefaultDependencyCriticality;

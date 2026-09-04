@@ -29,7 +29,7 @@ namespace DependencyTracker.Data.Repositories
                 .ToList();
         }
 
-        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, bool includeDeleted)
+        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, string sortBy, bool includeDeleted)
         {
             var query = DbSet.Where(a => includeDeleted || !a.IsDeleted);
 
@@ -43,8 +43,8 @@ namespace DependencyTracker.Data.Repositories
                     a.BusinessOwnerEmail.Contains(term) ||
                     a.BusinessBackup.Contains(term) ||
                     a.BusinessBackupEmail.Contains(term) ||
-                    a.TechnicalOwner.Contains(term) ||
-                    a.TechnicalOwnerEmail.Contains(term));
+                    a.TechnicalOwnerEmail.Contains(term) ||
+                    a.TechnicalOwnershipTeam.Name.Contains(term));
             }
 
             if (!string.IsNullOrWhiteSpace(environment))
@@ -62,8 +62,23 @@ namespace DependencyTracker.Data.Repositories
             if (technologyId.HasValue)
                 query = query.Where(a => a.TechnologyMappings.Any(m => m.TechnologyId == technologyId.Value));
 
+            if (familyId.HasValue)
+                query = query.Where(a => a.FamilyId == familyId.Value);
+
+            if (tagId.HasValue)
+                query = query.Where(a => a.TagMappings.Any(m => m.TagId == tagId.Value));
+
             if (!string.IsNullOrWhiteSpace(version))
                 query = query.Where(a => a.Version == version);
+
+            if (string.Equals(sortBy, "family", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return query
+                    .OrderBy(a => a.Family.Name)
+                    .ThenBy(a => a.Name)
+                    .ThenBy(a => a.Version)
+                    .ToList();
+            }
 
             return query
                 .OrderBy(a => a.Name)

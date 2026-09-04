@@ -9,7 +9,7 @@ namespace DependencyTracker.Data.Services
         IEnumerable<Application> GetAll();
         IEnumerable<Application> GetAllIncludingDeleted();
         IEnumerable<Application> GetVersionsByName(string name);
-        IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, bool includeDeleted);
+        IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, string sortBy, bool includeDeleted);
         Application Create(Application application, string user);
         Application Update(Application application, string user);
         void SoftDelete(int applicationId, string user);

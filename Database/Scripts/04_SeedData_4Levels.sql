@@ -51,67 +51,67 @@ GO
    =========================================================================== */
 
 /* ---- Level 0: Entry points -------------------------------------------- */
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Customer Portal', N'Customer-facing web portal for self-service account, order and billing access.', N'Marketing', N'Platform Team', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Customer Portal', N'Customer-facing web portal for self-service account, order and billing access.', N'Marketing', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Partner Portal', N'Extranet portal used by business partners to manage orders and reports.', N'Sales', N'Platform Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Partner Portal', N'Extranet portal used by business partners to manage orders and reports.', N'Sales', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team'), N'Production', N'High', N'Active');
 
 /* ---- Level 1: Business services --------------------------------------- */
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Order Service', N'Order entry, validation and orchestration service.', N'Operations', N'Commerce Team', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Order Service', N'Order entry, validation and orchestration service.', N'Operations', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Commerce Team'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Billing Service', N'Invoicing, payment and settlement processing.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Billing Service', N'Invoicing, payment and settlement processing.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Account Service', N'Customer account lifecycle management and profile data.', N'Operations', N'Commerce Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Account Service', N'Customer account lifecycle management and profile data.', N'Operations', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Commerce Team'), N'Production', N'High', N'Active');
 
 /* ---- Level 2: Shared services ----------------------------------------- */
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Identity Service', N'Central authentication, SSO and identity management.', N'Security', N'Security Team', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Identity Service', N'Central authentication, SSO and identity management.', N'Security', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Security Team'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Notification Service', N'Email, SMS and push notification delivery.', N'Marketing', N'Platform Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Notification Service', N'Email, SMS and push notification delivery.', N'Marketing', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team'), N'Production', N'High', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Payment Gateway', N'Card and bank payment processing integration.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Payment Gateway', N'Card and bank payment processing integration.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'CRM Service', N'Customer relationship management data and workflows.', N'Sales', N'CRM Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'CRM Service', N'Customer relationship management data and workflows.', N'Sales', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'CRM Team'), N'Production', N'High', N'Active');
 
 /* ---- Level 3: Core data / infrastructure ------------------------------ */
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Master Data Service', N'Canonical customer, product and location reference data.', N'Data Governance', N'Data Platform Team', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Master Data Service', N'Canonical customer, product and location reference data.', N'Data Governance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Data Platform Team'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Reporting Warehouse', N'BI warehouse feeding dashboards and analytical reports.', N'BI Team', N'Data Platform Team', N'Production', N'Medium', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Reporting Warehouse', N'BI warehouse feeding dashboards and analytical reports.', N'BI Team', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Data Platform Team'), N'Production', N'Medium', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Legacy Mainframe', N'Legacy order and billing mainframe system being phased out.', N'Operations', N'Mainframe Team', N'Production', N'Medium', N'Retired');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Legacy Mainframe', N'Legacy order and billing mainframe system being phased out.', N'Operations', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Mainframe Team'), N'Production', N'Medium', N'Retired');
 
 /* ---- Circular dependency examples -------------------------------------- */
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Settlement Service', N'Payment settlement processing and funding instructions.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Settlement Service', N'Payment settlement processing and funding instructions.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Payment Ledger', N'Canonical ledger of payment and settlement events.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Payment Ledger', N'Canonical ledger of payment and settlement events.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Fraud Detection Service', N'Real-time transaction fraud scoring.', N'Risk', N'Risk Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Fraud Detection Service', N'Real-time transaction fraud scoring.', N'Risk', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Risk Team'), N'Production', N'High', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Risk Scoring Service', N'Credit and transaction risk models.', N'Risk', N'Risk Team', N'Production', N'High', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Risk Scoring Service', N'Credit and transaction risk models.', N'Risk', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Risk Team'), N'Production', N'High', N'Active');
 
-INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Case Management Service', N'Fraud and dispute case workflow management.', N'Operations', N'Commerce Team', N'Production', N'Medium', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Case Management Service', N'Fraud and dispute case workflow management.', N'Operations', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Commerce Team'), N'Production', N'Medium', N'Active');
 
 /* ---- Multi-version demo ------------------------------------------------ */
 /* Master Data Service is deployed as a second, newer version (1.2.0). The   */
 /* consumers above (Order, Billing, Account, CRM, Notification) depend on    */
 /* the logical application, so the seed creates edges into BOTH versions.    */
-INSERT INTO [dbo].[Applications] ([Name], [Version], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-VALUES (N'Master Data Service', N'1.2.0', N'Canonical customer, product and location reference data (v1.2 rollout).', N'Data Governance', N'Data Platform Team', N'Production', N'Critical', N'Active');
+INSERT INTO [dbo].[Applications] ([Name], [Version], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+VALUES (N'Master Data Service', N'1.2.0', N'Canonical customer, product and location reference data (v1.2 rollout).', N'Data Governance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Data Platform Team'), N'Production', N'Critical', N'Active');
 
 /* Backfill the version on any row not seeded with one. */
 UPDATE [dbo].[Applications] SET [Version] = N'1.0.0' WHERE [Version] IS NULL OR LTRIM(RTRIM([Version])) = N'';

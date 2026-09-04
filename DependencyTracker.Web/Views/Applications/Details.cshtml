@@ -20,6 +20,14 @@
             <span class="badge @BadgeFor("crit", Model.Application.CriticalityLevel)">@Model.Application.CriticalityLevel</span>
             <span class="badge @BadgeFor("status", Model.Application.Status)">@Model.Application.Status</span>
             <span class="badge @BadgeFor("cat", Model.Application.Category == null ? null : Model.Application.Category.Name)">@(Model.Application.Category == null ? "Uncategorized" : Model.Application.Category.Name)</span>
+            @if (Model.Application.Family != null)
+            {
+                <span class="badge bg-light text-dark border">@Model.Application.Family.Name</span>
+            }
+            @if (Model.Application.TechnicalOwnershipTeam != null)
+            {
+                <span class="badge bg-light text-dark border">@Model.Application.TechnicalOwnershipTeam.Name</span>
+            }
             @if (Model.Application.IsDeleted)
             {
                 <span class="badge bg-danger">Deleted</span>
@@ -113,8 +121,12 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <div class="small text-muted">Technical Owner</div>
-                            <div class="fw-semibold">@(Model.Application.TechnicalOwner ?? "-")</div>
+                            <div class="small text-muted">Family</div>
+                            <div class="fw-semibold">@(Model.Application.Family == null ? "-" : Model.Application.Family.Name)</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="small text-muted">Technical Ownership Team</div>
+                            <div class="fw-semibold">@(Model.Application.TechnicalOwnershipTeam == null ? "-" : Model.Application.TechnicalOwnershipTeam.Name)</div>
                             <div class="small">
                                 @if (!string.IsNullOrEmpty(Model.Application.TechnicalOwnerEmail))
                                 {
@@ -178,6 +190,7 @@
 
 @* Technology & operations *@
 @if (Model.Technologies != null && Model.Technologies.Any()
+    || Model.Tags != null && Model.Tags.Any()
     || !string.IsNullOrEmpty(Model.Application.ApplicationIDE)
     || !string.IsNullOrEmpty(Model.Application.FrameworkVersion)
     || !string.IsNullOrEmpty(Model.Application.DocumentationLink)
@@ -199,6 +212,18 @@
                         @foreach (var tech in Model.Technologies)
                         {
                             <span class="badge bg-light text-dark border me-1">@tech.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+            @if (Model.Tags != null && Model.Tags.Any())
+            {
+                <div class="mb-3">
+                    <div class="small text-muted mb-1">Tags</div>
+                    <div>
+                        @foreach (var tag in Model.Tags)
+                        {
+                            <span class="badge bg-info text-dark border me-1">@tag.Name</span>
                         }
                     </div>
                 </div>

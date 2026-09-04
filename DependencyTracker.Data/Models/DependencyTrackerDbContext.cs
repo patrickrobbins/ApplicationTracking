@@ -37,6 +37,14 @@ namespace DependencyTracker.Data.Models
 
         public DbSet<ApplicationTechnologyMapping> ApplicationTechnologyMappings { get; set; }
 
+        public DbSet<ApplicationFamily> ApplicationFamilies { get; set; }
+
+        public DbSet<TechnicalOwnershipTeam> TechnicalOwnershipTeams { get; set; }
+
+        public DbSet<ApplicationTag> ApplicationTags { get; set; }
+
+        public DbSet<ApplicationTagMapping> ApplicationTagMappings { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
@@ -111,6 +119,30 @@ namespace DependencyTracker.Data.Models
                 .HasForeignKey(a => a.CategoryId)
                 .WillCascadeOnDelete(false);
 
+            // Family name is unique and deleting a family leaves apps unfamilied
+            modelBuilder.Entity<ApplicationFamily>()
+                .HasIndex(f => f.Name)
+                .IsUnique();
+            modelBuilder.Entity<ApplicationFamily>()
+                .Property(f => f.Description).HasMaxLength(500);
+            modelBuilder.Entity<Application>()
+                .HasOptional(a => a.Family)
+                .WithMany()
+                .HasForeignKey(a => a.FamilyId)
+                .WillCascadeOnDelete(false);
+
+            // Technical ownership team name is unique; deleting leaves apps unowned
+            modelBuilder.Entity<TechnicalOwnershipTeam>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
+            modelBuilder.Entity<TechnicalOwnershipTeam>()
+                .Property(t => t.Description).HasMaxLength(500);
+            modelBuilder.Entity<Application>()
+                .HasOptional(a => a.TechnicalOwnershipTeam)
+                .WithMany()
+                .HasForeignKey(a => a.TechnicalOwnershipTeamId)
+                .WillCascadeOnDelete(false);
+
             // One DLL row per (application, file name)
             modelBuilder.Entity<Application>()
                 .HasMany(a => a.Dlls)
@@ -143,6 +175,28 @@ namespace DependencyTracker.Data.Models
                 .HasMany(t => t.Mappings)
                 .WithRequired(m => m.Technology)
                 .HasForeignKey(m => m.TechnologyId)
+                .WillCascadeOnDelete(true);
+
+            // Shared tag name is unique; a tag can be applied to many apps
+            modelBuilder.Entity<ApplicationTag>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
+            modelBuilder.Entity<ApplicationTag>()
+                .Property(t => t.Description).HasMaxLength(500);
+
+            // One mapping per (application, tag); cascade both ways
+            modelBuilder.Entity<ApplicationTagMapping>()
+                .HasIndex(m => new { m.ApplicationId, m.TagId })
+                .IsUnique();
+            modelBuilder.Entity<Application>()
+                .HasMany(a => a.TagMappings)
+                .WithRequired(m => m.Application)
+                .HasForeignKey(m => m.ApplicationId)
+                .WillCascadeOnDelete(true);
+            modelBuilder.Entity<ApplicationTag>()
+                .HasMany(t => t.Mappings)
+                .WithRequired(m => m.Tag)
+                .HasForeignKey(m => m.TagId)
                 .WillCascadeOnDelete(true);
 
             base.OnModelCreating(modelBuilder);

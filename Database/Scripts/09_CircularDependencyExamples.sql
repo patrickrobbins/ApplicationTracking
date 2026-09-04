@@ -25,24 +25,24 @@ SET NOCOUNT ON;
    Applications (only inserted if absent)
    =========================================================================== */
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Settlement Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Settlement Service', N'Payment settlement processing and funding instructions.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    VALUES (N'Settlement Service', N'Payment settlement processing and funding instructions.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Payment Ledger')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Payment Ledger', N'Canonical ledger of payment and settlement events.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    VALUES (N'Payment Ledger', N'Canonical ledger of payment and settlement events.', N'Finance', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT'), N'Production', N'Critical', N'Active');
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Fraud Detection Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Fraud Detection Service', N'Real-time transaction fraud scoring.', N'Risk', N'Risk Team', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    VALUES (N'Fraud Detection Service', N'Real-time transaction fraud scoring.', N'Risk', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Risk Team'), N'Production', N'High', N'Active');
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Risk Scoring Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Risk Scoring Service', N'Credit and transaction risk models.', N'Risk', N'Risk Team', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    VALUES (N'Risk Scoring Service', N'Credit and transaction risk models.', N'Risk', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Risk Team'), N'Production', N'High', N'Active');
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Case Management Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Case Management Service', N'Fraud and dispute case workflow management.', N'Operations', N'Commerce Team', N'Production', N'Medium', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    VALUES (N'Case Management Service', N'Fraud and dispute case workflow management.', N'Operations', (SELECT [TeamId] FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Commerce Team'), N'Production', N'Medium', N'Active');
 
 /* ============================================================================
    Dependencies (only inserted if absent)

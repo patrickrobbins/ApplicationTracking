@@ -56,8 +56,14 @@
                             @Html.ValidationMessageFor(m => m.BusinessBackupEmail, "", new { @class = "text-danger small" })
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Technical Owner</label>
-                            @Html.TextBoxFor(m => m.TechnicalOwner, new { @class = "form-control", placeholder = "Name" })
+                            <label class="form-label">Family</label>
+                            @Html.DropDownListFor(m => m.FamilyId, Model.FamilyOptions, "Select...", new { @class = "form-select" })
+                            <div class="form-text">Application families are maintained in the <a href="@Url.Action("Families", "Admin")">Administration</a> area.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Technical Ownership Team</label>
+                            @Html.DropDownListFor(m => m.TechnicalOwnershipTeamId, Model.TeamOptions, "Select...", new { @class = "form-select" })
+                            <div class="form-text">Teams are maintained in the <a href="@Url.Action("Teams", "Admin")">Administration</a> area.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Technical Owner Email</label>
@@ -108,6 +114,20 @@
                             <div class="form-text">
                                 Hold <strong>Ctrl</strong> (or <strong>Cmd</strong>) to select multiple. Tags are maintained in the
                                 <a href="@Url.Action("Technologies", "Admin")">Administration</a> area.
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tags</label>
+                            @Html.ListBoxFor(m => m.SelectedTagIds, Model.TagOptions, new { @class = "form-select", size = 5 })
+                            <div class="form-text mt-1">
+                                Hold <strong>Ctrl</strong> (or <strong>Cmd</strong>) to select multiple shared tags.
+                            </div>
+                            <label class="form-label mt-2">New tags <span class="text-muted small">(comma-separated)</span></label>
+                            @Html.TextBoxFor(m => m.NewTagNames, new { @class = "form-control", placeholder = "e.g. PCI, Copilot, Windows Server 2025" })
+                            <div class="form-text">
+                                Typed tags are added to the shared pool and reused by other applications (existing tags are matched, not duplicated).
+                                Tags can also be managed in the
+                                <a href="@Url.Action("Tags", "Admin")">Administration</a> area.
                             </div>
                         </div>
                         <div class="col-12">

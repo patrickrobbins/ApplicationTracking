@@ -23,51 +23,95 @@ IF NOT EXISTS (SELECT 1 FROM [dbo].[ADGroups] WHERE [GroupName] = N'DOMAIN\Depen
     VALUES (N'DOMAIN\DependencyTracker_Maintenance', N'Maintenance', N'Can create and edit applications and dependencies', 1);
 
 /* ============================================================================
+   Technical ownership teams
+   =========================================================================== */
+INSERT INTO [dbo].[TechnicalOwnershipTeams] ([Name], [Description], [SortOrder])
+SELECT s.[Name], s.[Description], s.[SortOrder]
+FROM (VALUES
+    (N'Platform Team',      N'Core platform and hosting.', 10),
+    (N'Commerce Team',      N'Commerce and order systems.', 20),
+    (N'Finance IT',         N'Finance, payment and billing systems.', 30),
+    (N'Security Team',      N'Security and identity systems.', 40),
+    (N'CRM Team',           N'CRM and sales systems.', 50),
+    (N'Data Platform Team', N'Data stores and analytics.', 60),
+    (N'Mainframe Team',     N'Mainframe systems.', 70),
+    (N'Risk Team',          N'Risk and fraud systems.', 80),
+    (N'Logistics IT',       N'Logistics and warehouse systems.', 90)
+) AS s([Name], [Description], [SortOrder])
+WHERE NOT EXISTS (SELECT 1 FROM [dbo].[TechnicalOwnershipTeams] t WHERE t.[Name] = s.[Name]);
+GO
+
+/* ============================================================================
+   Application families
+   =========================================================================== */
+INSERT INTO [dbo].[ApplicationFamilies] ([Name], [Description], [SortOrder])
+SELECT s.[Name], s.[Description], s.[SortOrder]
+FROM (VALUES
+    (N'Business Applications', N'Customer-, partner- and staff-facing business systems.', 10),
+    (N'Shared Services',       N'Shared platforms and services consumed by multiple systems.', 20),
+    (N'Data & Analytics',      N'Data stores, warehouses and analytics platforms.', 30),
+    (N'Infrastructure',        N'Foundational infrastructure and identity services.', 40)
+) AS s([Name], [Description], [SortOrder])
+WHERE NOT EXISTS (SELECT 1 FROM [dbo].[ApplicationFamilies] f WHERE f.[Name] = s.[Name]);
+GO
+
+/* ============================================================================
    Sample Applications
    =========================================================================== */
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Portal Web')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Portal Web', N'Customer-facing web portal providing self-service access to accounts, billing, and support.', N'Marketing', N'Platform Team', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Portal Web', N'Customer-facing web portal providing self-service access to accounts, billing, and support.', N'Marketing', t.TeamId, N'Production', N'Critical', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Identity Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Identity Service', N'Central authentication and single sign-on service used across all applications.', N'Security', N'Security Team', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Identity Service', N'Central authentication and single sign-on service used across all applications.', N'Security', t.TeamId, N'Production', N'Critical', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Security Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Customer CRM')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Customer CRM', N'Customer relationship management system tracking all sales and support interactions.', N'Sales', N'CRM Team', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Customer CRM', N'Customer relationship management system tracking all sales and support interactions.', N'Sales', t.TeamId, N'Production', N'High', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'CRM Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Order Management')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Order Management', N'Order entry, processing and fulfillment workflows.', N'Operations', N'Commerce Team', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Order Management', N'Order entry, processing and fulfillment workflows.', N'Operations', t.TeamId, N'Production', N'Critical', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Commerce Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Billing Engine')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Billing Engine', N'Invoicing, payment processing and financial reconciliation engine.', N'Finance', N'Finance IT', N'Production', N'Critical', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Billing Engine', N'Invoicing, payment processing and financial reconciliation engine.', N'Finance', t.TeamId, N'Production', N'Critical', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Finance IT') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Warehouse API')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Warehouse API', N'Inventory management and warehouse fulfillment REST API.', N'Logistics', N'Logistics IT', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Warehouse API', N'Inventory management and warehouse fulfillment REST API.', N'Logistics', t.TeamId, N'Production', N'High', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Logistics IT') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Reporting Warehouse')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Reporting Warehouse', N'BI data warehouse feeding dashboards and analytical reports.', N'BI Team', N'Data Platform Team', N'Production', N'Medium', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Reporting Warehouse', N'BI data warehouse feeding dashboards and analytical reports.', N'BI Team', t.TeamId, N'Production', N'Medium', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Data Platform Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Notification Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Notification Service', N'Email, SMS and push notification delivery service.', N'Marketing', N'Platform Team', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Notification Service', N'Email, SMS and push notification delivery service.', N'Marketing', t.TeamId, N'Production', N'High', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Master Data Service')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Master Data Service', N'Canonical reference data - customers, products, locations.', N'Data Governance', N'Data Platform Team', N'Production', N'High', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Master Data Service', N'Canonical reference data - customers, products, locations.', N'Data Governance', t.TeamId, N'Production', N'High', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Data Platform Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Legacy Mainframe')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Legacy Mainframe', N'Legacy order and billing mainframe system being phased out.', N'Operations', N'Mainframe Team', N'Production', N'Medium', N'Retired');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Legacy Mainframe', N'Legacy order and billing mainframe system being phased out.', N'Operations', t.TeamId, N'Production', N'Medium', N'Retired'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Mainframe Team') t;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Applications] WHERE [Name] = N'Staging Portal')
-    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwner], [Environment], [CriticalityLevel], [Status])
-    VALUES (N'Staging Portal', N'Staging environment for the portal web application.', N'Marketing', N'Platform Team', N'Staging', N'Low', N'Active');
+    INSERT INTO [dbo].[Applications] ([Name], [Description], [BusinessOwner], [TechnicalOwnershipTeamId], [Environment], [CriticalityLevel], [Status])
+    SELECT N'Staging Portal', N'Staging environment for the portal web application.', N'Marketing', t.TeamId, N'Staging', N'Low', N'Active'
+    FROM (SELECT TeamId FROM [dbo].[TechnicalOwnershipTeams] WHERE [Name] = N'Platform Team') t;
 
 /* ============================================================================
    Sample Dependencies

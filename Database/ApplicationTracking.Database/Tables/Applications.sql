@@ -9,9 +9,10 @@ CREATE TABLE [dbo].[Applications]
     [BusinessGroup]     NVARCHAR(200)     NULL,
     [BusinessBackup]    NVARCHAR(200)     NULL,
     [BusinessBackupEmail] NVARCHAR(200)     NULL,
-    [TechnicalOwner]    NVARCHAR(200)     NULL,
     [TechnicalOwnerEmail] NVARCHAR(200)     NULL,
     [CategoryId]        INT               NULL,
+    [FamilyId]          INT               NULL,
+    [TechnicalOwnershipTeamId] INT        NULL,
     [Environment]       NVARCHAR(50)      NULL,
     [CriticalityLevel]  NVARCHAR(20)      NULL,
     [Status]            NVARCHAR(20)      NOT NULL CONSTRAINT [DF_Applications_Status] DEFAULT (N'Active'),
@@ -37,6 +38,10 @@ CREATE TABLE [dbo].[Applications]
     CONSTRAINT [UQ_Applications_Name_Version] UNIQUE NONCLUSTERED ([Name] ASC, [Version] ASC),
     CONSTRAINT [FK_Applications_Category] FOREIGN KEY ([CategoryId])
         REFERENCES [dbo].[ApplicationCategories] ([CategoryId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_Family] FOREIGN KEY ([FamilyId])
+        REFERENCES [dbo].[ApplicationFamilies] ([FamilyId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_OwnershipTeam] FOREIGN KEY ([TechnicalOwnershipTeamId])
+        REFERENCES [dbo].[TechnicalOwnershipTeams] ([TeamId]) ON DELETE SET NULL,
     CONSTRAINT [CK_Applications_Environment] CHECK ([Environment] IN (N'Production', N'Staging', N'Development')),
     CONSTRAINT [CK_Applications_Criticality] CHECK ([CriticalityLevel] IN (N'Critical', N'High', N'Medium', N'Low')),
     CONSTRAINT [CK_Applications_Status] CHECK ([Status] IN (N'Active', N'Retired', N'Planned')),
@@ -52,6 +57,10 @@ GO
 CREATE NONCLUSTERED INDEX [IX_Applications_Environment] ON [dbo].[Applications] ([Environment] ASC);
 GO
 CREATE NONCLUSTERED INDEX [IX_Applications_CategoryId] ON [dbo].[Applications] ([CategoryId] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Applications_FamilyId] ON [dbo].[Applications] ([FamilyId] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Applications_TechnicalOwnershipTeamId] ON [dbo].[Applications] ([TechnicalOwnershipTeamId] ASC);
 GO
 CREATE NONCLUSTERED INDEX [IX_Applications_SourcePath] ON [dbo].[Applications] ([SourcePath] ASC);
 GO

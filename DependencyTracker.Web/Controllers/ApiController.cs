@@ -110,12 +110,13 @@ namespace DependencyTracker.Web.Controllers
                     businessOwnerEmail = app.BusinessOwnerEmail,
                     businessBackup = app.BusinessBackup,
                     businessBackupEmail = app.BusinessBackupEmail,
-                    technicalOwner = app.TechnicalOwner,
                     technicalOwnerEmail = app.TechnicalOwnerEmail,
                     environment = app.Environment,
                     criticality = app.CriticalityLevel,
                     status = app.Status,
-                    category = app.Category?.Name
+                    category = app.Category?.Name,
+                    family = app.FamilyId == null ? null : app.Family.Name,
+                    technicalOwnershipTeam = app.TechnicalOwnershipTeamId == null ? null : app.TechnicalOwnershipTeam.Name
                 },
                 upstreamCount = upstream.Count,
                 downstreamCount = downstream.Count,

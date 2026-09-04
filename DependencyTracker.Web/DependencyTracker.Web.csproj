@@ -217,6 +217,15 @@
     <Content Include="Views\Admin\Categories.cshtml" />
     <Content Include="Views\Admin\CategoryCreate.cshtml" />
     <Content Include="Views\Admin\CategoryEdit.cshtml" />
+    <Content Include="Views\Admin\Families.cshtml" />
+    <Content Include="Views\Admin\FamilyCreate.cshtml" />
+    <Content Include="Views\Admin\FamilyEdit.cshtml" />
+    <Content Include="Views\Admin\Tags.cshtml" />
+    <Content Include="Views\Admin\TagCreate.cshtml" />
+    <Content Include="Views\Admin\TagEdit.cshtml" />
+    <Content Include="Views\Admin\Teams.cshtml" />
+    <Content Include="Views\Admin\TeamCreate.cshtml" />
+    <Content Include="Views\Admin\TeamEdit.cshtml" />
     <Content Include="Views\Admin\Technologies.cshtml" />
     <Content Include="Views\Admin\TechnologyCreate.cshtml" />
     <Content Include="Views\Admin\TechnologyEdit.cshtml" />

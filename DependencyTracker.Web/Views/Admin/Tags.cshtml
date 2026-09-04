@@ -1,0 +1,77 @@
+@model IEnumerable<DependencyTracker.Data.Models.ApplicationTag>
+
+@{
+    ViewBag.Title = "Tags";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mt-3 mb-4">
+    <h1 class="h3 mb-0">Application Tags</h1>
+    <div class="btn-group">
+        <a href="@Url.Action("TagCreate", "Admin")" class="btn btn-primary">+ New Tag</a>
+        <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">Back to Admin</a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    Tags are shared, user-generated labels applied to applications (for example:
+    <strong>PCI</strong>, <strong>Copilot</strong>, <strong>Windows Server 2025</strong>).
+    They are created on the application form (comma-separated "New tags" box) and reused
+    across applications, and can be added or cleaned up here.
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Sort</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@t.Name</td>
+                        <td class="text-muted">@(t.Description ?? "-")</td>
+                        <td><span class="badge bg-light text-dark border">@t.SortOrder</span></td>
+                        <td>
+                            @if (t.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a href="@Url.Action("TagEdit", "Admin", new { id = t.TagId })"
+                               class="btn btn-sm btn-outline-secondary">Edit</a>
+                            @using (Html.BeginForm("TagToggle", "Admin", new { id = t.TagId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    @(t.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                            @using (Html.BeginForm("TagDelete", "Admin", new { id = t.TagId }, FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Remove tag \'@t.Name\'? Applications no longer carry the tag.');">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-muted text-center py-3">No tags configured.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

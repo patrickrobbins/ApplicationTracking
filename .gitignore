@@ -28,6 +28,8 @@ TestResults/
 ## Database local files
 Database/*.mdf
 Database/*.ldf
+*.dbmdl
+*.jfm
 
 ## OS
 Thumbs.db

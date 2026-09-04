@@ -16,16 +16,23 @@ namespace DependencyTracker.Web.Controllers
         private readonly IApplicationPropertyService _propertyService;
         private readonly IApplicationCategoryService _categoryService;
         private readonly IApplicationTechnologyService _technologyService;
+        private readonly IApplicationFamilyService _familyService;
+        private readonly ITechnicalOwnershipTeamService _teamService;
+        private readonly IApplicationTagService _tagService;
 
         public AdminController(IAdminService adminService, IRoleProvider roleProvider,
             IApplicationPropertyService propertyService, IApplicationCategoryService categoryService,
-            IApplicationTechnologyService technologyService)
+            IApplicationTechnologyService technologyService, IApplicationFamilyService familyService,
+            ITechnicalOwnershipTeamService teamService, IApplicationTagService tagService)
         {
             _adminService = adminService;
             _roleProvider = roleProvider;
             _propertyService = propertyService;
             _categoryService = categoryService;
             _technologyService = technologyService;
+            _familyService = familyService;
+            _teamService = teamService;
+            _tagService = tagService;
         }
 
         // GET: /Admin
@@ -558,6 +565,360 @@ namespace DependencyTracker.Web.Controllers
             _technologyService.Delete(id.Value, _roleProvider.CurrentUserFullName);
             TempData["SuccessMessage"] = "Technology removed; applications no longer carry the tag.";
             return RedirectToAction("Technologies");
+        }
+
+        // GET: /Admin/Families
+        public ActionResult Families()
+        {
+            return View(_familyService.GetFamilies().ToList());
+        }
+
+        // GET: /Admin/Family/Create
+        public ActionResult FamilyCreate()
+        {
+            var model = new FamilyViewModel { IsActive = true };
+            return View(model);
+        }
+
+        // POST: /Admin/Family/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FamilyCreate(FamilyViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var family = new ApplicationFamily
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _familyService.Create(family, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Family '{family.Name}' added.";
+                    return RedirectToAction("Families");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // GET: /Admin/Family/Edit/5
+        public ActionResult FamilyEdit(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var family = _familyService.GetById(id.Value);
+            if (family == null)
+                return HttpNotFound();
+
+            var model = new FamilyViewModel
+            {
+                FamilyId = family.FamilyId,
+                Name = family.Name,
+                Description = family.Description,
+                IsActive = family.IsActive,
+                SortOrder = family.SortOrder
+            };
+            return View(model);
+        }
+
+        // POST: /Admin/Family/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FamilyEdit(FamilyViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var family = new ApplicationFamily
+                    {
+                        FamilyId = model.FamilyId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _familyService.Update(family, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Family '{family.Name}' updated.";
+                    return RedirectToAction("Families");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: /Admin/Family/Toggle/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FamilyToggle(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _familyService.ToggleActive(id.Value, _roleProvider.CurrentUserFullName);
+            return RedirectToAction("Families");
+        }
+
+        // POST: /Admin/Family/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FamilyDelete(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _familyService.Delete(id.Value, _roleProvider.CurrentUserFullName);
+            TempData["SuccessMessage"] = "Family removed; affected applications are now unfamilied.";
+            return RedirectToAction("Families");
+        }
+
+        // GET: /Admin/Teams
+        public ActionResult Teams()
+        {
+            return View(_teamService.GetTeams().ToList());
+        }
+
+        // GET: /Admin/Team/Create
+        public ActionResult TeamCreate()
+        {
+            var model = new TeamViewModel { IsActive = true };
+            return View(model);
+        }
+
+        // POST: /Admin/Team/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TeamCreate(TeamViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var team = new TechnicalOwnershipTeam
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _teamService.Create(team, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Team '{team.Name}' added.";
+                    return RedirectToAction("Teams");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // GET: /Admin/Team/Edit/5
+        public ActionResult TeamEdit(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var team = _teamService.GetById(id.Value);
+            if (team == null)
+                return HttpNotFound();
+
+            var model = new TeamViewModel
+            {
+                TeamId = team.TeamId,
+                Name = team.Name,
+                Description = team.Description,
+                IsActive = team.IsActive,
+                SortOrder = team.SortOrder
+            };
+            return View(model);
+        }
+
+        // POST: /Admin/Team/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TeamEdit(TeamViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var team = new TechnicalOwnershipTeam
+                    {
+                        TeamId = model.TeamId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _teamService.Update(team, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Team '{team.Name}' updated.";
+                    return RedirectToAction("Teams");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: /Admin/Team/Toggle/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TeamToggle(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _teamService.ToggleActive(id.Value, _roleProvider.CurrentUserFullName);
+            return RedirectToAction("Teams");
+        }
+
+        // POST: /Admin/Team/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TeamDelete(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _teamService.Delete(id.Value, _roleProvider.CurrentUserFullName);
+            TempData["SuccessMessage"] = "Team removed; affected applications are no longer assigned a technical ownership team.";
+            return RedirectToAction("Teams");
+        }
+
+        // GET: /Admin/Tags
+        public ActionResult Tags()
+        {
+            return View(_tagService.GetTags().ToList());
+        }
+
+        // GET: /Admin/Tag/Create
+        public ActionResult TagCreate()
+        {
+            var model = new TagViewModel { IsActive = true };
+            return View(model);
+        }
+
+        // POST: /Admin/Tag/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TagCreate(TagViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var tag = new ApplicationTag
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _tagService.Create(tag, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Tag '{tag.Name}' added.";
+                    return RedirectToAction("Tags");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // GET: /Admin/Tag/Edit/5
+        public ActionResult TagEdit(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var tag = _tagService.GetById(id.Value);
+            if (tag == null)
+                return HttpNotFound();
+
+            var model = new TagViewModel
+            {
+                TagId = tag.TagId,
+                Name = tag.Name,
+                Description = tag.Description,
+                IsActive = tag.IsActive,
+                SortOrder = tag.SortOrder
+            };
+            return View(model);
+        }
+
+        // POST: /Admin/Tag/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TagEdit(TagViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var tag = new ApplicationTag
+                    {
+                        TagId = model.TagId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _tagService.Update(tag, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Tag '{tag.Name}' updated.";
+                    return RedirectToAction("Tags");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: /Admin/Tag/Toggle/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TagToggle(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _tagService.ToggleActive(id.Value, _roleProvider.CurrentUserFullName);
+            return RedirectToAction("Tags");
+        }
+
+        // POST: /Admin/Tag/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TagDelete(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _tagService.Delete(id.Value, _roleProvider.CurrentUserFullName);
+            TempData["SuccessMessage"] = "Tag removed; applications no longer carry the tag.";
+            return RedirectToAction("Tags");
         }
 
         private string GetServerInfo()

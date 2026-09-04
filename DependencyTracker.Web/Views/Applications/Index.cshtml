@@ -12,6 +12,9 @@
         criticality = Model.Criticality,
         categoryId = Model.CategoryId,
         technologyId = Model.TechnologyId,
+        familyId = Model.FamilyId,
+        tagId = Model.TagId,
+        sortBy = Model.SortBy,
         version = Model.Version,
         dllName = Model.DllName,
         dllOperator = Model.DllOperator,
@@ -108,10 +111,29 @@
                             Model.Technologies,
                             "All", new { @class = "form-select" })
                     </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Family</label>
+                        @Html.DropDownListFor(m => m.FamilyId,
+                            Model.Families,
+                            "All", new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Tag</label>
+                        @Html.DropDownListFor(m => m.TagId,
+                            Model.Tags,
+                            "All", new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Sort by</label>
+                        @Html.DropDownListFor(m => m.SortBy,
+                            Model.SortOptions,
+                            new { @class = "form-select" })
+                    </div>
                     <div class="col-md-9">
                         <div class="form-text mt-md-4">
                             Filter by application technology tag (e.g. .NET Framework, ASP.NET, SQL Server).
-                            Tags are maintained on the application form.
+                            Tags are maintained on the application form. Shared tags (e.g. PCI, Copilot) are created on the
+                            application form and reused across applications.
                         </div>
                     </div>
                 </div>
@@ -133,6 +155,7 @@ else
                     <tr>
                         <th>Application</th>
                         <th>Category</th>
+                        <th>Family</th>
                         <th>Environment</th>
                         <th>Criticality</th>
                         <th>Status</th>
@@ -152,7 +175,7 @@ else
                         if (isExpandedHeader)
                         {
                             <tr class="@(app.IsDeleted ? "table-secondary" : "table-primary fw-semibold")">
-                                <td colspan="7">
+                                <td colspan="8">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <span>
                                             @app.Name
@@ -202,6 +225,23 @@ else
                                     }
                                 </div>
                                 <div class="small text-muted">@(app.Description == null ? "" : app.Description.Length > 60 ? app.Description.Substring(0, 60) + "..." : app.Description)</div>
+                                @if (!string.IsNullOrEmpty(app.Team))
+                                {
+                                    <div class="small text-muted">Team: @app.Team</div>
+                                }
+                                @if (!string.IsNullOrEmpty(app.TagNames))
+                                {
+                                    <div class="mt-1">
+                                        @foreach (var tagName in app.TagNames.Split(','))
+                                        {
+                                            var trimmedTag = tagName.Trim();
+                                            if (trimmedTag.Length > 0)
+                                            {
+                                                <span class="badge bg-info text-dark border me-1">@trimmedTag</span>
+                                            }
+                                        }
+                                    </div>
+                                }
                                 @if (app.MatchedDlls != null && app.MatchedDlls.Any())
                                 {
                                     <div class="small">
@@ -213,6 +253,7 @@ else
                                 }
                             </td>
                             <td><span class="badge @BadgeFor("cat", app.Category)">@(app.Category ?? "-")</span></td>
+                            <td><span class="badge bg-light text-dark border">@(app.Family ?? "-")</span></td>
                             <td><span class="badge @BadgeFor("env", app.Environment)">@app.Environment</span></td>
                             <td><span class="badge @BadgeFor("crit", app.CriticalityLevel)">@app.CriticalityLevel</span></td>
                             <td><span class="badge @BadgeFor("status", app.Status)">@app.Status</span></td>

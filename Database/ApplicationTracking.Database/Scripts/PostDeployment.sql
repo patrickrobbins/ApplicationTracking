@@ -9,6 +9,8 @@ PRINT N'Starting post-deployment seed.';
 GO
 
 :r .\Seed\Seed_ApplicationCategories.sql
+:r .\Seed\Seed_ApplicationFamilies.sql
+:r .\Seed\Seed_TechnicalOwnershipTeams.sql
 :r .\Seed\Seed_ADGroups.sql
 :r .\Seed\Seed_Applications.sql
 :r .\Seed\Seed_Dependencies.sql

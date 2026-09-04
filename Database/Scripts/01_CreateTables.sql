@@ -18,10 +18,14 @@ GO
 IF OBJECT_ID(N'[dbo].[ActivityLog]', N'U') IS NOT NULL DROP TABLE [dbo].[ActivityLog];
 IF OBJECT_ID(N'[dbo].[Dependencies]', N'U') IS NOT NULL DROP TABLE [dbo].[Dependencies];
 IF OBJECT_ID(N'[dbo].[ApplicationTechnologyMappings]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTechnologyMappings];
+IF OBJECT_ID(N'[dbo].[ApplicationTagMappings]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTagMappings];
+IF OBJECT_ID(N'[dbo].[ApplicationTags]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTags];
 IF OBJECT_ID(N'[dbo].[ApplicationDlls]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationDlls];
 IF OBJECT_ID(N'[dbo].[Applications]', N'U') IS NOT NULL DROP TABLE [dbo].[Applications];
 IF OBJECT_ID(N'[dbo].[ApplicationTechnologies]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTechnologies];
 IF OBJECT_ID(N'[dbo].[ApplicationCategories]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationCategories];
+IF OBJECT_ID(N'[dbo].[ApplicationFamilies]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationFamilies];
+IF OBJECT_ID(N'[dbo].[TechnicalOwnershipTeams]', N'U') IS NOT NULL DROP TABLE [dbo].[TechnicalOwnershipTeams];
 IF OBJECT_ID(N'[dbo].[ADGroups]', N'U') IS NOT NULL DROP TABLE [dbo].[ADGroups];
 GO
 
@@ -46,6 +50,49 @@ CREATE TABLE [dbo].[ApplicationCategories]
 GO
 
 /* ============================================================================
+   ApplicationFamilies - managed, dynamic list of application families
+   (e.g. Business Applications, Shared Services, Platform & Infrastructure).
+   Families are maintained by an administrator and referenced from
+   Applications through a nullable foreign key.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[ApplicationFamilies]
+(
+    [FamilyId]    INT IDENTITY(1,1) NOT NULL,
+    [Name]        NVARCHAR(100)     NOT NULL,
+    [Description] NVARCHAR(500)     NULL,
+    [IsActive]    BIT               NOT NULL CONSTRAINT [DF_AppFamily_IsActive] DEFAULT (1),
+    [SortOrder]   INT               NOT NULL CONSTRAINT [DF_AppFamily_SortOrder] DEFAULT (0),
+    [CreatedDate]  DATETIME2(0)     NOT NULL CONSTRAINT [DF_AppFamily_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate] DATETIME2(0)     NOT NULL CONSTRAINT [DF_AppFamily_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]    NVARCHAR(128)    NULL,
+    [ModifiedBy]   NVARCHAR(128)    NULL,
+    CONSTRAINT [PK_ApplicationFamilies] PRIMARY KEY CLUSTERED ([FamilyId] ASC),
+    CONSTRAINT [UQ_ApplicationFamilies_Name] UNIQUE NONCLUSTERED ([Name] ASC)
+);
+GO
+
+/* ============================================================================
+   TechnicalOwnershipTeams - managed, dynamic list of teams responsible for
+   the technical ownership of applications. Replaces the free-text
+   TechnicalOwner name on the application form.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[TechnicalOwnershipTeams]
+(
+    [TeamId]      INT IDENTITY(1,1) NOT NULL,
+    [Name]        NVARCHAR(100)     NOT NULL,
+    [Description] NVARCHAR(500)     NULL,
+    [IsActive]    BIT               NOT NULL CONSTRAINT [DF_OwnershipTeam_IsActive] DEFAULT (1),
+    [SortOrder]   INT               NOT NULL CONSTRAINT [DF_OwnershipTeam_SortOrder] DEFAULT (0),
+    [CreatedDate]  DATETIME2(0)     NOT NULL CONSTRAINT [DF_OwnershipTeam_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate] DATETIME2(0)     NOT NULL CONSTRAINT [DF_OwnershipTeam_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]    NVARCHAR(128)    NULL,
+    [ModifiedBy]   NVARCHAR(128)    NULL,
+    CONSTRAINT [PK_TechnicalOwnershipTeams] PRIMARY KEY CLUSTERED ([TeamId] ASC),
+    CONSTRAINT [UQ_TechnicalOwnershipTeams_Name] UNIQUE NONCLUSTERED ([Name] ASC)
+);
+GO
+
+/* ============================================================================
    Applications
    ------------------------------------------------------------------------- */
 CREATE TABLE [dbo].[Applications]
@@ -59,9 +106,10 @@ CREATE TABLE [dbo].[Applications]
     [BusinessGroup]     NVARCHAR(200)     NULL,
     [BusinessBackup]    NVARCHAR(200)     NULL,
     [BusinessBackupEmail] NVARCHAR(200)     NULL,
-    [TechnicalOwner]    NVARCHAR(200)     NULL,
     [TechnicalOwnerEmail] NVARCHAR(200)     NULL,
     [CategoryId]        INT               NULL,       -- -> ApplicationCategories (managed list)
+    [FamilyId]          INT               NULL,       -- -> ApplicationFamilies (managed list)
+    [TechnicalOwnershipTeamId] INT        NULL,       -- -> TechnicalOwnershipTeams (managed list)
     [Environment]       NVARCHAR(50)      NULL,       -- Production, Staging, Development
     [CriticalityLevel]  NVARCHAR(20)      NULL,       -- Critical, High, Medium, Low
     [Status]            NVARCHAR(20)      NOT NULL CONSTRAINT [DF_Applications_Status] DEFAULT (N'Active'), -- Active, Retired, Planned
@@ -87,6 +135,10 @@ CREATE TABLE [dbo].[Applications]
     CONSTRAINT [UQ_Applications_Name_Version] UNIQUE NONCLUSTERED ([Name] ASC, [Version] ASC),
     CONSTRAINT [FK_Applications_Category] FOREIGN KEY ([CategoryId])
         REFERENCES [dbo].[ApplicationCategories] ([CategoryId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_Family] FOREIGN KEY ([FamilyId])
+        REFERENCES [dbo].[ApplicationFamilies] ([FamilyId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_OwnershipTeam] FOREIGN KEY ([TechnicalOwnershipTeamId])
+        REFERENCES [dbo].[TechnicalOwnershipTeams] ([TeamId]) ON DELETE SET NULL,
     CONSTRAINT [CK_Applications_Environment] CHECK ([Environment] IN (N'Production', N'Staging', N'Development')),
     CONSTRAINT [CK_Applications_Criticality] CHECK ([CriticalityLevel] IN (N'Critical', N'High', N'Medium', N'Low')),
     CONSTRAINT [CK_Applications_Status] CHECK ([Status] IN (N'Active', N'Retired', N'Planned')),
@@ -99,6 +151,8 @@ CREATE NONCLUSTERED INDEX [IX_Applications_Name] ON [dbo].[Applications] ([Name]
 CREATE NONCLUSTERED INDEX [IX_Applications_Status] ON [dbo].[Applications] ([Status] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_Environment] ON [dbo].[Applications] ([Environment] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_CategoryId] ON [dbo].[Applications] ([CategoryId] ASC);
+CREATE NONCLUSTERED INDEX [IX_Applications_FamilyId] ON [dbo].[Applications] ([FamilyId] ASC);
+CREATE NONCLUSTERED INDEX [IX_Applications_TechnicalOwnershipTeamId] ON [dbo].[Applications] ([TechnicalOwnershipTeamId] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_SourcePath] ON [dbo].[Applications] ([SourcePath] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_IsDeleted] ON [dbo].[Applications] ([IsDeleted] ASC);
 GO
@@ -143,6 +197,50 @@ GO
 
 CREATE NONCLUSTERED INDEX [IX_AppTechMap_ApplicationId] ON [dbo].[ApplicationTechnologyMappings] ([ApplicationId] ASC);
 CREATE NONCLUSTERED INDEX [IX_AppTechMap_TechnologyId] ON [dbo].[ApplicationTechnologyMappings] ([TechnologyId] ASC);
+GO
+
+/* ============================================================================
+   ApplicationTags - shared, user-generated tags applied to applications.
+   Tags are created on the application form (on-the-fly) as well as through
+   the Administration area; every tag lives in one shared pool and is reused
+   across applications.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[ApplicationTags]
+(
+    [TagId]       INT IDENTITY(1,1) NOT NULL,
+    [Name]        NVARCHAR(100)     NOT NULL,
+    [Description] NVARCHAR(500)     NULL,
+    [IsActive]    BIT               NOT NULL CONSTRAINT [DF_AppTag_IsActive] DEFAULT (1),
+    [SortOrder]   INT               NOT NULL CONSTRAINT [DF_AppTag_SortOrder] DEFAULT (0),
+    [CreatedDate]  DATETIME2(0)     NOT NULL CONSTRAINT [DF_AppTag_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate] DATETIME2(0)     NOT NULL CONSTRAINT [DF_AppTag_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]    NVARCHAR(128)    NULL,
+    [ModifiedBy]   NVARCHAR(128)    NULL,
+    CONSTRAINT [PK_ApplicationTags] PRIMARY KEY CLUSTERED ([TagId] ASC),
+    CONSTRAINT [UQ_ApplicationTags_Name] UNIQUE NONCLUSTERED ([Name] ASC)
+);
+GO
+
+/* ============================================================================
+   ApplicationTagMappings - many-to-many join between applications and
+   shared tags. Deleting an application or a tag removes its mappings.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[ApplicationTagMappings]
+(
+    [MappingId]     INT IDENTITY(1,1) NOT NULL,
+    [ApplicationId] INT               NOT NULL,   -- -> Applications
+    [TagId]         INT               NOT NULL,   -- -> ApplicationTags
+    CONSTRAINT [PK_ApplicationTagMappings] PRIMARY KEY CLUSTERED ([MappingId] ASC),
+    CONSTRAINT [FK_AppTagMap_Application] FOREIGN KEY ([ApplicationId])
+        REFERENCES [dbo].[Applications] ([ApplicationId]) ON DELETE CASCADE,
+    CONSTRAINT [FK_AppTagMap_Tag] FOREIGN KEY ([TagId])
+        REFERENCES [dbo].[ApplicationTags] ([TagId]) ON DELETE CASCADE,
+    CONSTRAINT [UQ_AppTagMap_App_Tag] UNIQUE NONCLUSTERED ([ApplicationId], [TagId])
+);
+GO
+
+CREATE NONCLUSTERED INDEX [IX_AppTagMap_ApplicationId] ON [dbo].[ApplicationTagMappings] ([ApplicationId] ASC);
+CREATE NONCLUSTERED INDEX [IX_AppTagMap_TagId] ON [dbo].[ApplicationTagMappings] ([TagId] ASC);
 GO
 
 /* ============================================================================

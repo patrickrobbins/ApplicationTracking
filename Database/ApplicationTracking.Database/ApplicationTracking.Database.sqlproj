@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{5E7A0B4C-3B5D-4E6F-8A90-1C2D3E4F5A6B}</ProjectGuid>
+    <ProjectGuid>{5e7a0b4c-3b5d-4e6f-8a90-1c2d3e4f5a6b}</ProjectGuid>
     <OutputType>Database</OutputType>
     <RootNamespace>ApplicationTracking.Database</RootNamespace>
     <AssemblyName>ApplicationTracking.Database</AssemblyName>
@@ -17,6 +17,7 @@
     <DefaultFileExtension>.sql</DefaultFileExtension>
     <DefaultSchema>dbo</DefaultSchema>
     <SqlServerVerification>False</SqlServerVerification>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>bin\Debug</OutputPath>
@@ -29,22 +30,35 @@
     <Build Include="Tables\ActivityLog.sql" />
     <Build Include="Tables\ApplicationCategories.sql" />
     <Build Include="Tables\ApplicationDlls.sql" />
+    <Build Include="Tables\ApplicationFamilies.sql" />
     <Build Include="Tables\ApplicationPropertyDefinitions.sql" />
     <Build Include="Tables\ApplicationPropertyValues.sql" />
+    <Build Include="Tables\ApplicationTags.sql" />
+    <Build Include="Tables\ApplicationTagMappings.sql" />
     <Build Include="Tables\ApplicationTechnologies.sql" />
     <Build Include="Tables\ApplicationTechnologyMappings.sql" />
     <Build Include="Tables\Applications.sql" />
     <Build Include="Tables\Dependencies.sql" />
+    <Build Include="Tables\TechnicalOwnershipTeams.sql" />
     <Build Include="StoredProcedures\GetDependencyChain.sql" />
     <None Include="Profiles\LocalDB.publish.xml" />
     <None Include="Scripts\Seed\Seed_ADGroups.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationCategories.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationDlls.sql" />
+    <None Include="Scripts\Seed\Seed_ApplicationFamilies.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationPropertyDefinitions.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationTechnologies.sql" />
     <None Include="Scripts\Seed\Seed_Applications.sql" />
     <None Include="Scripts\Seed\Seed_Dependencies.sql" />
+    <None Include="Scripts\Seed\Seed_TechnicalOwnershipTeams.sql" />
     <PostDeploy Include="Scripts\PostDeployment.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tables\" />
+    <Folder Include="StoredProcedures\" />
+    <Folder Include="Profiles\" />
+    <Folder Include="Scripts\" />
+    <Folder Include="Scripts\Seed\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
 </Project>

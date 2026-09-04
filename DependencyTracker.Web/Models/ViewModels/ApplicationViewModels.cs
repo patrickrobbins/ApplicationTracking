@@ -16,6 +16,9 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string CriticalityLevel { get; set; }
         public string Status { get; set; }
         public string Category { get; set; }
+        public string Family { get; set; }
+        public string Team { get; set; }
+        public string TagNames { get; set; }
         public int DependencyCount { get; set; }
 
         /// <summary>Matched DLLs (file name + version) when the search included a DLL filter.</summary>
@@ -54,6 +57,15 @@ namespace DependencyTracker.Web.Models.ViewModels
         /// <summary>Application technology tag filter (exact tag id).</summary>
         public int? TechnologyId { get; set; }
 
+        /// <summary>Application family filter (exact id).</summary>
+        public int? FamilyId { get; set; }
+
+        /// <summary>Shared user tag filter (exact id).</summary>
+        public int? TagId { get; set; }
+
+        /// <summary>Result ordering: "" (name) or "family".</summary>
+        public string SortBy { get; set; }
+
         /// <summary>Application version filter (exact match), e.g. 1.2.0.</summary>
         public string Version { get; set; }
 
@@ -74,6 +86,9 @@ namespace DependencyTracker.Web.Models.ViewModels
         public IEnumerable<string> Versions { get; set; }
         public IEnumerable<SelectListItem> Categories { get; set; }
         public IEnumerable<SelectListItem> Technologies { get; set; }
+        public IEnumerable<SelectListItem> Families { get; set; }
+        public IEnumerable<SelectListItem> Tags { get; set; }
+        public IEnumerable<SelectListItem> SortOptions { get; set; }
         public IEnumerable<ApplicationListItemViewModel> Results { get; set; }
         public bool CanEdit { get; set; }
 
@@ -119,9 +134,6 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string BusinessBackupEmail { get; set; }
 
         [StringLength(200)]
-        public string TechnicalOwner { get; set; }
-
-        [StringLength(200)]
         [EmailAddress(ErrorMessage = "Technical owner email is not a valid email address.")]
         public string TechnicalOwnerEmail { get; set; }
 
@@ -140,6 +152,10 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string Status { get; set; }
 
         public int? CategoryId { get; set; }
+
+        public int? FamilyId { get; set; }
+
+        public int? TechnicalOwnershipTeamId { get; set; }
 
         [StringLength(500)]
         [DataType(DataType.Url)]
@@ -193,11 +209,25 @@ namespace DependencyTracker.Web.Models.ViewModels
         public IEnumerable<SelectListItem> CriticalityOptions { get; set; }
         public IEnumerable<SelectListItem> StatusOptions { get; set; }
         public IEnumerable<SelectListItem> CategoryOptions { get; set; }
+        public IEnumerable<SelectListItem> FamilyOptions { get; set; }
+        public IEnumerable<SelectListItem> TeamOptions { get; set; }
 
         /// <summary>Ids of the technology tags applied to this application.</summary>
         public IEnumerable<int> SelectedTechnologyIds { get; set; }
 
         public IEnumerable<SelectListItem> TechnologyOptions { get; set; }
+
+        /// <summary>Ids of the shared user tags applied to this application.</summary>
+        public IEnumerable<int> SelectedTagIds { get; set; }
+
+        public IEnumerable<SelectListItem> TagOptions { get; set; }
+
+        /// <summary>
+        /// Comma-separated names typed by the user; each is created in the shared
+        /// tag pool (reused by name, case-insensitively) when the application saves.
+        /// </summary>
+        [Display(Name = "New tags")]
+        public string NewTagNames { get; set; }
 
         public IList<ApplicationPropertyViewModel> Properties { get; set; }
     }
@@ -213,6 +243,9 @@ namespace DependencyTracker.Web.Models.ViewModels
 
         /// <summary>Technology tags applied to this application.</summary>
         public IEnumerable<ApplicationTechnology> Technologies { get; set; }
+
+        /// <summary>Shared user tags applied to this application.</summary>
+        public IEnumerable<ApplicationTag> Tags { get; set; }
 
         /// <summary>Other deployed versions of the same application name (excluding the current row).</summary>
         public IEnumerable<VersionLinkViewModel> OtherVersions { get; set; }

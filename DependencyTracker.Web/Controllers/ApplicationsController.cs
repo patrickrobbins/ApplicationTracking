@@ -18,6 +18,9 @@ namespace DependencyTracker.Web.Controllers
         private readonly IApplicationPropertyService _propertyService;
         private readonly IApplicationCategoryService _categoryService;
         private readonly IApplicationTechnologyService _technologyService;
+        private readonly IApplicationFamilyService _familyService;
+        private readonly ITechnicalOwnershipTeamService _teamService;
+        private readonly IApplicationTagService _tagService;
         private readonly IAppDiscoveryService _discoveryService;
         private readonly IApplicationDllService _dllService;
         private readonly IRoleProvider _roleProvider;
@@ -28,6 +31,9 @@ namespace DependencyTracker.Web.Controllers
             IApplicationPropertyService propertyService,
             IApplicationCategoryService categoryService,
             IApplicationTechnologyService technologyService,
+            IApplicationFamilyService familyService,
+            ITechnicalOwnershipTeamService teamService,
+            IApplicationTagService tagService,
             IAppDiscoveryService discoveryService,
             IApplicationDllService dllService,
             IRoleProvider roleProvider)
@@ -37,6 +43,9 @@ namespace DependencyTracker.Web.Controllers
             _propertyService = propertyService;
             _categoryService = categoryService;
             _technologyService = technologyService;
+            _familyService = familyService;
+            _teamService = teamService;
+            _tagService = tagService;
             _discoveryService = discoveryService;
             _dllService = dllService;
             _roleProvider = roleProvider;
@@ -44,10 +53,11 @@ namespace DependencyTracker.Web.Controllers
 
         // GET: /Applications
         public ActionResult Index(string term, string environment, string status, string criticality, int? categoryId,
-            string version, int? technologyId, string dllName, string dllOperator, string dllVersion,
+            string version, int? technologyId, int? familyId, int? tagId, string sortBy,
+            string dllName, string dllOperator, string dllVersion,
             bool showAllVersions = false, bool includeDeleted = false)
         {
-            var results = _applicationService.Search(term, environment, status, criticality, categoryId, version, technologyId, includeDeleted).ToList();
+            var results = _applicationService.Search(term, environment, status, criticality, categoryId, version, technologyId, familyId, tagId, sortBy, includeDeleted).ToList();
 
             var matchedDlls = new Dictionary<int, List<string>>();
             if (!string.IsNullOrWhiteSpace(dllName))
@@ -81,6 +91,11 @@ namespace DependencyTracker.Web.Controllers
                 CriticalityLevel = a.CriticalityLevel,
                 Status = a.Status,
                 Category = a.Category == null ? null : a.Category.Name,
+                Family = a.Family == null ? null : a.Family.Name,
+                Team = a.TechnicalOwnershipTeam == null ? null : a.TechnicalOwnershipTeam.Name,
+                TagNames = a.TagMappings == null || !a.TagMappings.Any()
+                    ? null
+                    : string.Join(", ", a.TagMappings.Select(m => m.Tag.Name).OrderBy(t => t)),
                 IsDeleted = a.IsDeleted,
                 DependencyCount = _dependencyService.GetForApplication(a.ApplicationId).Count(),
                 MatchedDlls = matchedDlls.ContainsKey(a.ApplicationId) ? matchedDlls[a.ApplicationId] : null
@@ -94,6 +109,9 @@ namespace DependencyTracker.Web.Controllers
                 Criticality = criticality,
                 CategoryId = categoryId,
                 TechnologyId = technologyId,
+                FamilyId = familyId,
+                TagId = tagId,
+                SortBy = sortBy,
                 Version = version,
                 DllName = dllName,
                 DllOperator = dllOperator,
@@ -107,6 +125,9 @@ namespace DependencyTracker.Web.Controllers
                 Versions = _applicationService.GetAllVersions(),
                 Categories = CategoryOptions(categoryId),
                 Technologies = TechnologyOptions(technologyId),
+                Families = FamilyOptions(familyId),
+                Tags = TagOptions(null, tagId),
+                SortOptions = SortOptions(sortBy),
                 CanEdit = IsEditor(),
                 Results = GroupVersions(listItems, showAllVersions, string.IsNullOrWhiteSpace(status))
             };
@@ -187,6 +208,7 @@ namespace DependencyTracker.Web.Controllers
                 OtherVersions = otherVersions,
                 Properties = BuildPropertyViewModels(id.Value).ToList(),
                 Technologies = _technologyService.GetForApplication(id.Value).ToList(),
+                Tags = _tagService.GetForApplication(id.Value).ToList(),
                 Dlls = _dllService.GetForApplication(id.Value).Select(d => new ApplicationDllViewModel
                 {
                     FileName = d.FileName,
@@ -234,7 +256,10 @@ namespace DependencyTracker.Web.Controllers
                 StatusOptions = ApplicationViewModelFactory.StatusOptions("Active"),
                 CategoryOptions = CategoryOptions(null),
                 TechnologyOptions = TechnologyOptions(null),
-                SelectedTechnologyIds = new int[0]
+                SelectedTechnologyIds = new int[0],
+                FamilyOptions = FamilyOptions(null),
+                TeamOptions = TeamOptions(null),
+                TagOptions = TagOptions(new int[0], null)
             };
             return View(model);
         }
@@ -259,9 +284,10 @@ namespace DependencyTracker.Web.Controllers
                         BusinessOwnerEmail = model.BusinessOwnerEmail,
                         BusinessBackup = model.BusinessBackup,
                         BusinessBackupEmail = model.BusinessBackupEmail,
-                        TechnicalOwner = model.TechnicalOwner,
                         TechnicalOwnerEmail = model.TechnicalOwnerEmail,
                         CategoryId = model.CategoryId,
+                        FamilyId = model.FamilyId,
+                        TechnicalOwnershipTeamId = model.TechnicalOwnershipTeamId,
                         Environment = model.Environment,
                         CriticalityLevel = model.CriticalityLevel,
                         DefaultDependencyCriticality = model.DefaultDependencyCriticality,
@@ -282,6 +308,8 @@ namespace DependencyTracker.Web.Controllers
 
                     _applicationService.Create(application, _roleProvider.CurrentUserFullName);
                     _technologyService.SetForApplication(application.ApplicationId, model.SelectedTechnologyIds, _roleProvider.CurrentUserFullName);
+                    var tagIds = ResolveTagIds(model, _roleProvider.CurrentUserFullName);
+                    _tagService.SetForApplication(application.ApplicationId, tagIds, _roleProvider.CurrentUserFullName);
                     TempData["SuccessMessage"] = $"Application '{application.Name}' created successfully.";
                     return RedirectToAction("Details", new { id = application.ApplicationId });
                 }
@@ -296,6 +324,9 @@ namespace DependencyTracker.Web.Controllers
             model.StatusOptions = ApplicationViewModelFactory.StatusOptions(model.Status);
             model.CategoryOptions = CategoryOptions(model.CategoryId);
             model.TechnologyOptions = TechnologyOptions(null);
+            model.FamilyOptions = FamilyOptions(model.FamilyId);
+            model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
+            model.TagOptions = TagOptions(model.SelectedTagIds, null);
             return View(model);
         }
 
@@ -321,9 +352,10 @@ namespace DependencyTracker.Web.Controllers
                 BusinessOwnerEmail = application.BusinessOwnerEmail,
                 BusinessBackup = application.BusinessBackup,
                 BusinessBackupEmail = application.BusinessBackupEmail,
-                TechnicalOwner = application.TechnicalOwner,
                 TechnicalOwnerEmail = application.TechnicalOwnerEmail,
                 CategoryId = application.CategoryId,
+                FamilyId = application.FamilyId,
+                TechnicalOwnershipTeamId = application.TechnicalOwnershipTeamId,
                 Environment = application.Environment,
                 CriticalityLevel = application.CriticalityLevel,
                 DefaultDependencyCriticality = application.DefaultDependencyCriticality,
@@ -347,6 +379,12 @@ namespace DependencyTracker.Web.Controllers
                 TechnologyOptions = TechnologyOptions(null),
                 SelectedTechnologyIds = _technologyService.GetForApplication(application.ApplicationId)
                     .Select(t => t.TechnologyId)
+                    .ToList(),
+                FamilyOptions = FamilyOptions(application.FamilyId),
+                TeamOptions = TeamOptions(application.TechnicalOwnershipTeamId),
+                TagOptions = TagOptions(_tagService.GetForApplication(application.ApplicationId).Select(t => t.TagId), null),
+                SelectedTagIds = _tagService.GetForApplication(application.ApplicationId)
+                    .Select(t => t.TagId)
                     .ToList()
             };
 
@@ -375,9 +413,10 @@ namespace DependencyTracker.Web.Controllers
                         BusinessOwnerEmail = model.BusinessOwnerEmail,
                         BusinessBackup = model.BusinessBackup,
                         BusinessBackupEmail = model.BusinessBackupEmail,
-                        TechnicalOwner = model.TechnicalOwner,
                         TechnicalOwnerEmail = model.TechnicalOwnerEmail,
                         CategoryId = model.CategoryId,
+                        FamilyId = model.FamilyId,
+                        TechnicalOwnershipTeamId = model.TechnicalOwnershipTeamId,
                         Environment = model.Environment,
                         CriticalityLevel = model.CriticalityLevel,
                         DefaultDependencyCriticality = model.DefaultDependencyCriticality,
@@ -398,6 +437,8 @@ namespace DependencyTracker.Web.Controllers
 
                     _applicationService.Update(application, _roleProvider.CurrentUserFullName);
                     _technologyService.SetForApplication(application.ApplicationId, model.SelectedTechnologyIds, _roleProvider.CurrentUserFullName);
+                    var tagIds = ResolveTagIds(model, _roleProvider.CurrentUserFullName);
+                    _tagService.SetForApplication(application.ApplicationId, tagIds, _roleProvider.CurrentUserFullName);
                     SavePropertyValues(model);
                     TempData["SuccessMessage"] = $"Application '{application.Name}' updated successfully.";
                     return RedirectToAction("Details", new { id = application.ApplicationId });
@@ -413,6 +454,9 @@ namespace DependencyTracker.Web.Controllers
             model.StatusOptions = ApplicationViewModelFactory.StatusOptions(model.Status);
             model.CategoryOptions = CategoryOptions(model.CategoryId);
             model.TechnologyOptions = TechnologyOptions(null);
+            model.FamilyOptions = FamilyOptions(model.FamilyId);
+            model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
+            model.TagOptions = TagOptions(model.SelectedTagIds, null);
             return View(model);
         }
 
@@ -535,6 +579,90 @@ namespace DependencyTracker.Web.Controllers
                 if (technology != null)
                     yield return new SelectListItem { Text = technology.Name + " (inactive)", Value = technology.TechnologyId.ToString(), Selected = true };
             }
+        }
+
+        private IEnumerable<SelectListItem> FamilyOptions(int? selected)
+        {
+            var active = _familyService.GetActiveFamilies().ToList();
+            foreach (var f in active)
+                yield return new SelectListItem { Text = f.Name, Value = f.FamilyId.ToString(), Selected = f.FamilyId == selected };
+
+            if (selected.HasValue && !active.Any(f => f.FamilyId == selected.Value))
+            {
+                var family = _familyService.GetById(selected.Value);
+                if (family != null)
+                    yield return new SelectListItem { Text = family.Name + " (inactive)", Value = family.FamilyId.ToString(), Selected = true };
+            }
+        }
+
+        private IEnumerable<SelectListItem> TeamOptions(int? selected)
+        {
+            var active = _teamService.GetActiveTeams().ToList();
+            foreach (var t in active)
+                yield return new SelectListItem { Text = t.Name, Value = t.TeamId.ToString(), Selected = t.TeamId == selected };
+
+            if (selected.HasValue && !active.Any(t => t.TeamId == selected.Value))
+            {
+                var team = _teamService.GetById(selected.Value);
+                if (team != null)
+                    yield return new SelectListItem { Text = team.Name + " (inactive)", Value = team.TeamId.ToString(), Selected = true };
+            }
+        }
+
+        /// <summary>
+        /// Tag options for a multi-select list. When <paramref name="selectedIds"/> is
+        /// provided (form), those ids are marked selected. Otherwise a single
+        /// <paramref name="selected"/> id marks its row selected (index filter).
+        /// </summary>
+        private IEnumerable<SelectListItem> TagOptions(IEnumerable<int> selectedIds, int? selected)
+        {
+            var active = _tagService.GetActiveTags().ToList();
+            var selectedSet = new HashSet<int>(selectedIds ?? Enumerable.Empty<int>());
+            foreach (var t in active)
+                yield return new SelectListItem { Text = t.Name, Value = t.TagId.ToString(), Selected = selectedSet.Contains(t.TagId) || t.TagId == selected };
+
+            if (selected.HasValue && !active.Any(t => t.TagId == selected.Value))
+            {
+                var tag = _tagService.GetById(selected.Value);
+                if (tag != null)
+                    yield return new SelectListItem { Text = tag.Name + " (inactive)", Value = tag.TagId.ToString(), Selected = true };
+            }
+        }
+
+        private static IEnumerable<SelectListItem> SortOptions(string selected)
+        {
+            yield return new SelectListItem { Text = "Application name", Value = "", Selected = string.IsNullOrEmpty(selected) };
+            yield return new SelectListItem { Text = "Family", Value = "family", Selected = string.Equals(selected, "family", StringComparison.OrdinalIgnoreCase) };
+        }
+
+        /// <summary>
+        /// Combines the tags selected from the shared pool with any typed in the
+        /// "New tags" box. Typed names are matched case-insensitively against the
+        /// pool and created (inactive names are never guessed) when missing.
+        /// </summary>
+        private List<int> ResolveTagIds(ApplicationFormViewModel model, string user)
+        {
+            var ids = new List<int>();
+            if (model.SelectedTagIds != null)
+                ids.AddRange(model.SelectedTagIds.Where(id => id > 0));
+
+            if (!string.IsNullOrWhiteSpace(model.NewTagNames))
+            {
+                var names = model.NewTagNames
+                    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(n => n.Trim())
+                    .Where(n => n.Length > 0)
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var name in names)
+                {
+                    var tag = _tagService.GetOrCreateByName(name, user);
+                    if (tag != null)
+                        ids.Add(tag.TagId);
+                }
+            }
+
+            return ids.Distinct().ToList();
         }
 
         private static IEnumerable<SelectListItem> DllOperatorOptions(string selected)
