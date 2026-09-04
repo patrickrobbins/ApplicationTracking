@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("DependencyTracker.Data")]
-[assembly: AssemblyDescription("Data access layer for the Application Dependency Tracker")]
+[assembly: AssemblyDescription("Data access layer for Application Tracking")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DependencyTracker")]
