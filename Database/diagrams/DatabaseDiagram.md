@@ -6,29 +6,66 @@
 +-------------------+       +-----------------------+       +-------------------+
 | ApplicationId (PK)|<------| SourceApplicationId   |       | GroupId (PK)      |
 | Name              |       | TargetApplicationId   |------>| GroupName         |
-| Description       |       | DependencyType        |       | Role              |
-| BusinessGroup     |       | Direction             |       | Description       |
-| BusinessOwner     |       | Description           |       | IsActive          |
-| BusinessOwnerEmail|       | CriticalityLevel     |       | CreatedDate       |
-| BusinessBackup    |       | Impact               |       | CreatedDate       |
-| BusinessBackup    |       | Frequency             |       +-------------------+
-| BusinessBackupEmail|      | CreatedDate           |
-| TechnicalOwner    |       | ModifiedDate          |
-| TechnicalOwnerEmail|      | CreatedBy             |
-| CategoryId (FK)   |       | ModifiedBy            |
-| Environment       |       +-----------------------+
+| Version           |       | DependencyType        |       | Role              |
+| Description       |       | Direction             |       | Description       |
+| BusinessGroup     |       | Description           |       | IsActive          |
+| BusinessOwner     |       | CriticalityLevel      |       | CreatedDate       |
+| BusinessOwnerEmail|       | Impact                |       | CreatedBy         |
+| BusinessBackup    |       | Frequency             |       | ModifiedBy        |
+| BusinessBackupEmail|      | CreatedDate           |       +-------------------+
+| TechnicalOwnerEmail|      | ModifiedDate          |
+| CategoryId (FK)   |       | CreatedBy             |
+| FamilyId (FK)     |       | ModifiedBy            |
+| TeamId (FK)       |       +-----------------------+
+| Environment       |
 | CriticalityLevel  |
 | Status            |
 | ExternalUrl       |
-| CreatedDate       |
-| ModifiedDate      |
-| CreatedBy         |
-| ModifiedBy        |
+| SourcePath        |
+| IsDeleted         |
+| audit cols        |
 +-------------------+
         |
         | CategoryId -> ApplicationCategories(CategoryId)
+        | FamilyId -> ApplicationFamilies(FamilyId)
+        | TeamId -> TechnicalOwnershipTeams(TeamId)
         | TargetApplicationId -> Applications(ApplicationId)
         +-----------+  SourceApplicationId -> Applications(ApplicationId)
+
++----------------------------+
+|   ApplicationFamilies      |
++----------------------------+
+| FamilyId (PK)              |
+| Name (unique)              |
+| Description (nullable)     |
+| IsActive                   |
+| SortOrder                  |
+| audit cols                 |
++----------------------------+
+
++----------------------------+
+| TechnicalOwnershipTeams    |
++----------------------------+
+| TeamId (PK)                |
+| Name (unique)              |
+| Description (nullable)     |
+| IsActive                   |
+| SortOrder                  |
+| audit cols                 |
++----------------------------+
+        |
+        | TeamId -> Applications(TechnicalOwnershipTeamId)
+
++---------------------------+     +-------------------------+
+| ApplicationTagMappings    |     | ApplicationTags         |
++---------------------------+     +-------------------------+
+| MappingId (PK)            |     | TagId (PK)              |
+| ApplicationId (FK)        |     | Name (unique)           |
+| TagId (FK)                |     | Description (nullable)  |
++---------------------------+     | IsActive                |
+        |                           | SortOrder               |
+        | ApplicationId -> Applications(ApplicationId) | audit cols           |
+        | TagId -> ApplicationTags(TagId)              +-------------------------+
 
 +----------------------------+
 |   ApplicationCategories    |
@@ -40,8 +77,6 @@
 | SortOrder                  |
 | audit cols                 |
 +----------------------------+
-        |
-        | PropertyDefinitionId -> ApplicationPropertyDefinitions
 
 +----------------------------+
 | ApplicationPropertyDefinitions |
@@ -56,8 +91,7 @@
 | SortOrder                  |
 | audit cols                 |
 +----------------------------+
-        |
-        | PropertyDefinitionId -> ApplicationPropertyDefinitions
+
 +----------------------------+
 | ApplicationPropertyValues  |
 +----------------------------+
@@ -67,6 +101,9 @@
 | Value                      |
 | audit cols                 |
 +----------------------------+
+        |
+        | PropertyDefinitionId -> ApplicationPropertyDefinitions
+        | ApplicationId -> Applications(ApplicationId)
 
 +-------------------+
 |   ActivityLog     |
