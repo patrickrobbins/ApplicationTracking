@@ -617,13 +617,19 @@ namespace DependencyTracker.Web.Controllers
         private IEnumerable<SelectListItem> TagOptions(IEnumerable<int> selectedIds, int? selected)
         {
             var active = _tagService.GetActiveTags().ToList();
+            var activeSet = new HashSet<int>(active.Select(t => t.TagId));
             var selectedSet = new HashSet<int>(selectedIds ?? Enumerable.Empty<int>());
             foreach (var t in active)
                 yield return new SelectListItem { Text = t.Name, Value = t.TagId.ToString(), Selected = selectedSet.Contains(t.TagId) || t.TagId == selected };
 
-            if (selected.HasValue && !active.Any(t => t.TagId == selected.Value))
+            var inactiveSelected = new HashSet<int>(
+                (selected.HasValue ? new[] { selected.Value } : new int[0])
+                .Concat(selectedSet)
+                .Where(id => id > 0 && !activeSet.Contains(id)));
+
+            foreach (var id in inactiveSelected)
             {
-                var tag = _tagService.GetById(selected.Value);
+                var tag = _tagService.GetById(id);
                 if (tag != null)
                     yield return new SelectListItem { Text = tag.Name + " (inactive)", Value = tag.TagId.ToString(), Selected = true };
             }
@@ -638,7 +644,8 @@ namespace DependencyTracker.Web.Controllers
         /// <summary>
         /// Combines the tags selected from the shared pool with any typed in the
         /// "New tags" box. Typed names are matched case-insensitively against the
-        /// pool and created (inactive names are never guessed) when missing.
+        /// pool; a name that already exists (even deactivated) is reused rather than
+        /// guessed as a new tag, and brand-new names are created on the fly.
         /// </summary>
         private List<int> ResolveTagIds(ApplicationFormViewModel model, string user)
         {

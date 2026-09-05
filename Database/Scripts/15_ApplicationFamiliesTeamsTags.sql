@@ -163,21 +163,29 @@ WHERE NOT EXISTS (SELECT 1 FROM [dbo].[ApplicationFamilies] f WHERE f.[Name] = s
 GO
 
 /* ============================================================================
-   Backfill: promote the old free-text [TechnicalOwner] values into the team
-   catalog, link matching applications, then drop the column.
-   ------------------------------------------------------------------------- */
-INSERT INTO [dbo].[TechnicalOwnershipTeams] ([Name], [SortOrder])
-SELECT DISTINCT a.[TechnicalOwner], 0
-FROM [dbo].[Applications] a
-WHERE a.[TechnicalOwner] IS NOT NULL AND LTRIM(RTRIM(a.[TechnicalOwner])) <> N''
-    AND NOT EXISTS (SELECT 1 FROM [dbo].[TechnicalOwnershipTeams] t WHERE t.[Name] = a.[TechnicalOwner]);
-GO
+Backfill: promote the old free-text [TechnicalOwner] values into the team
+    catalog and link matching applications. Guarded on the column still existing
+    and executed with dynamic SQL (name resolution is deferred) so the script can
+    be safely re-run after the column has already been dropped.
+    ------------------------------------------------------------------------- */
+IF COL_LENGTH(N'dbo.Applications', N'TechnicalOwner') IS NOT NULL
+BEGIN
+    EXEC(N'
+        INSERT INTO [dbo].[TechnicalOwnershipTeams] ([Name], [SortOrder])
+        SELECT DISTINCT a.[TechnicalOwner], 0
+        FROM [dbo].[Applications] a
+        WHERE a.[TechnicalOwner] IS NOT NULL AND LTRIM(RTRIM(a.[TechnicalOwner])) <> N''''
+            AND NOT EXISTS (SELECT 1 FROM [dbo].[TechnicalOwnershipTeams] t WHERE t.[Name] = a.[TechnicalOwner]);
+    ');
 
-UPDATE a
-SET a.[TechnicalOwnershipTeamId] = t.[TeamId]
-FROM [dbo].[Applications] a
-INNER JOIN [dbo].[TechnicalOwnershipTeams] t ON t.[Name] = a.[TechnicalOwner]
-WHERE a.[TechnicalOwner] IS NOT NULL AND LTRIM(RTRIM(a.[TechnicalOwner])) <> N'';
+    EXEC(N'
+        UPDATE a
+        SET a.[TechnicalOwnershipTeamId] = t.[TeamId]
+        FROM [dbo].[Applications] a
+        INNER JOIN [dbo].[TechnicalOwnershipTeams] t ON t.[Name] = a.[TechnicalOwner]
+        WHERE a.[TechnicalOwner] IS NOT NULL AND LTRIM(RTRIM(a.[TechnicalOwner])) <> N'''';
+    ');
+END
 GO
 
 IF COL_LENGTH(N'dbo.Applications', N'TechnicalOwner') IS NOT NULL
