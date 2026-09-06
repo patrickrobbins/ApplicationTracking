@@ -93,6 +93,37 @@ namespace DependencyTracker.Data.Repositories
             return DbSet.Count(d => d.SourceApplicationId == applicationId || d.TargetApplicationId == applicationId);
         }
 
+        public IDictionary<int, int> GetCountsForApplications(IEnumerable<int> applicationIds)
+        {
+            var ids = applicationIds.Distinct().ToList();
+            var counts = new Dictionary<int, int>();
+
+            if (ids.Count == 0)
+                return counts;
+
+            // An application can be a source or a target; count dependencies on
+            // either side in two grouped queries so large lists avoid N query
+            // round-trips (mirrors GetForApplication's non-deleted filter).
+            var bySource = DbSet
+                .Where(d => ids.Contains(d.SourceApplicationId) && !d.SourceApplication.IsDeleted && !d.TargetApplication.IsDeleted)
+                .GroupBy(d => d.SourceApplicationId)
+                .Select(g => new { Key = g.Key, Count = g.Count() })
+                .ToList();
+
+            var byTarget = DbSet
+                .Where(d => ids.Contains(d.TargetApplicationId) && !d.SourceApplication.IsDeleted && !d.TargetApplication.IsDeleted)
+                .GroupBy(d => d.TargetApplicationId)
+                .Select(g => new { Key = g.Key, Count = g.Count() })
+                .ToList();
+
+            foreach (var group in bySource)
+                counts[group.Key] = group.Count;
+            foreach (var group in byTarget)
+                counts[group.Key] = counts.TryGetValue(group.Key, out var existing) ? existing + group.Count : group.Count;
+
+            return counts;
+        }
+
         public IEnumerable<DependencyChainResult> GetChain(int applicationId, int maxDepth, string direction)
         {
             return Context.GetDependencyChain(applicationId, maxDepth, direction).ToList();

@@ -143,6 +143,11 @@ namespace DependencyTracker.Data.Services
             return _dependencyRepository.RelationshipExists(sourceId, targetId, dependencyType);
         }
 
+        public IDictionary<int, int> GetCountsForApplications(IEnumerable<int> applicationIds)
+        {
+            return _dependencyRepository.GetCountsForApplications(applicationIds);
+        }
+
         public IEnumerable<DependencyChainResult> GetChain(int applicationId, int maxDepth, string direction)
         {
             return _dependencyRepository.GetChain(applicationId, maxDepth, direction);

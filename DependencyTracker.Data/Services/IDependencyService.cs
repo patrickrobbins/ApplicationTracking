@@ -15,6 +15,7 @@ namespace DependencyTracker.Data.Services
         Dependency Update(Dependency dependency, string user);
         void Delete(int dependencyId, string user);
         bool RelationshipExists(int sourceId, int targetId, string dependencyType);
+        IDictionary<int, int> GetCountsForApplications(IEnumerable<int> applicationIds);
         IEnumerable<DependencyChainResult> GetChain(int applicationId, int maxDepth, string direction);
         IEnumerable<string> GetAllTypes();
         IEnumerable<string> GetAllFrequencies();

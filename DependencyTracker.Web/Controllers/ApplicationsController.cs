@@ -81,6 +81,8 @@ namespace DependencyTracker.Web.Controllers
                 }
             }
 
+            var dependencyCounts = _dependencyService.GetCountsForApplications(results.Select(r => r.ApplicationId));
+
             var listItems = results.Select(a => new ApplicationListItemViewModel
             {
                 ApplicationId = a.ApplicationId,
@@ -97,7 +99,7 @@ namespace DependencyTracker.Web.Controllers
                     ? null
                     : string.Join(", ", a.TagMappings.Select(m => m.Tag.Name).OrderBy(t => t)),
                 IsDeleted = a.IsDeleted,
-                DependencyCount = _dependencyService.GetForApplication(a.ApplicationId).Count(),
+                DependencyCount = dependencyCounts.TryGetValue(a.ApplicationId, out var count) ? count : 0,
                 MatchedDlls = matchedDlls.ContainsKey(a.ApplicationId) ? matchedDlls[a.ApplicationId] : null
             }).ToList();
 

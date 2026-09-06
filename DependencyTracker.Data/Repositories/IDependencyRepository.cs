@@ -12,6 +12,7 @@ namespace DependencyTracker.Data.Repositories
         IEnumerable<Dependency> Search(string dependencyType, string criticality, int? sourceId, int? targetId);
         bool RelationshipExists(int sourceId, int targetId, string dependencyType);
         int CountForApplication(int applicationId);
+        IDictionary<int, int> GetCountsForApplications(IEnumerable<int> applicationIds);
         IEnumerable<DependencyChainResult> GetChain(int applicationId, int maxDepth, string direction);
     }
 }

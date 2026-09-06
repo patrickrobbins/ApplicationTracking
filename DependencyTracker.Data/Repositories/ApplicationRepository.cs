@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.Data.Entity;
 using DependencyTracker.Data.Models;
 
 namespace DependencyTracker.Data.Repositories
@@ -31,7 +32,12 @@ namespace DependencyTracker.Data.Repositories
 
         public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, string sortBy, bool includeDeleted)
         {
-            var query = DbSet.Where(a => includeDeleted || !a.IsDeleted);
+            var query = DbSet
+                .Include(a => a.Category)
+                .Include(a => a.Family)
+                .Include(a => a.TechnicalOwnershipTeam)
+                .Include(a => a.TagMappings.Select(m => m.Tag))
+                .Where(a => includeDeleted || !a.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(term))
             {
