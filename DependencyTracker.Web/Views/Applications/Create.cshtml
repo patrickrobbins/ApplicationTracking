@@ -130,6 +130,7 @@
                                 <a href="@Url.Action("Tags", "Admin")">Administration</a> area.
                             </div>
                         </div>
+                        @Html.Partial("_PackageEditorRows")
                         <div class="col-12">
                             <label class="form-label">Documentation Link</label>
                             @Html.TextBoxFor(m => m.DocumentationLink, new { @class = "form-control", placeholder = "https://confluence.company.com/..." })

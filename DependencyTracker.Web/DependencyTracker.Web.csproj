@@ -200,6 +200,7 @@
     <Content Include="Views\Applications\Details.cshtml" />
     <Content Include="Views\Applications\Create.cshtml" />
     <Content Include="Views\Applications\Edit.cshtml" />
+    <Content Include="Views\Applications\_PackageEditorRows.cshtml" />
     <Content Include="Views\Applications\Delete.cshtml" />
     <Content Include="Views\Dependencies\Index.cshtml" />
     <Content Include="Views\Dependencies\Create.cshtml" />
@@ -223,6 +224,9 @@
     <Content Include="Views\Admin\Tags.cshtml" />
     <Content Include="Views\Admin\TagCreate.cshtml" />
     <Content Include="Views\Admin\TagEdit.cshtml" />
+    <Content Include="Views\Admin\PackageTypes.cshtml" />
+    <Content Include="Views\Admin\PackageTypeCreate.cshtml" />
+    <Content Include="Views\Admin\PackageTypeEdit.cshtml" />
     <Content Include="Views\Admin\Teams.cshtml" />
     <Content Include="Views\Admin\TeamCreate.cshtml" />
     <Content Include="Views\Admin\TeamEdit.cshtml" />

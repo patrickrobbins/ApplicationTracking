@@ -1,0 +1,125 @@
+@model DependencyTracker.Web.Models.ViewModels.ApplicationFormViewModel
+
+<div class="col-12">
+    <hr class="my-2">
+    <div class="fw-semibold mb-1">Packages</div>
+    <div class="form-text mb-2">
+        Record the packages this application consumes. Names are shared by type + name across applications.
+        Package types are maintained in the <a href="@Url.Action("PackageTypes", "Admin")">Administration</a> area.
+    </div>
+</div>
+
+<div class="col-12">
+    <table class="table table-sm align-middle" id="packageRows">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 30%">Type</th>
+                <th>Package name</th>
+                <th style="width: 25%">Version</th>
+                <th style="width: 90px" class="text-end">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Packages != null)
+            {
+                for (var i = 0; i < Model.Packages.Count; i++)
+                {
+                    var pkg = Model.Packages[i];
+                    <tr class="package-row">
+                        <td>
+                            <select name="Packages[@i].PackageTypeId" class="form-select">
+                                <option value="">Select type...</option>
+                                @foreach (var opt in Model.PackageTypeOptions)
+                                {
+                                    <option value="@opt.Value" selected="@(opt.Value == pkg.PackageTypeId.ToString())">@opt.Text</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="Packages[@i].Name" value="@pkg.Name" class="form-control pkg-name" placeholder="e.g. Newtonsoft.Json" />
+                        </td>
+                        <td>
+                            <input type="text" name="Packages[@i].Version" value="@pkg.Version" class="form-control pkg-version" placeholder="e.g. 13.0.3" />
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-package-row">Remove</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="addPackageRow">+ Add package</button>
+</div>
+
+<script type="text/template" id="package-row-template">
+    <tr class="package-row">
+        <td>
+            <select name="Packages[__i__].PackageTypeId" class="form-select">
+                <option value="">Select type...</option>
+                @foreach (var opt in Model.PackageTypeOptions)
+                {
+                    <option value="@opt.Value">@opt.Text</option>
+                }
+            </select>
+        </td>
+        <td>
+            <input type="text" name="Packages[__i__].Name" value="" class="form-control pkg-name" placeholder="e.g. Newtonsoft.Json" />
+        </td>
+        <td>
+            <input type="text" name="Packages[__i__].Version" value="" class="form-control pkg-version" placeholder="e.g. 13.0.3" />
+        </td>
+        <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-package-row">Remove</button>
+        </td>
+    </tr>
+</script>
+
+<script>
+(function () {
+    function renumberPackageRows() {
+        var rows = document.querySelectorAll('#packageRows tbody tr.package-row');
+        for (var i = 0; i < rows.length; i++) {
+            var prefix = 'Packages[' + i + ']';
+            var select = rows[i].querySelector('select');
+            if (select) select.name = prefix + '.PackageTypeId';
+            var nameInput = rows[i].querySelector('.pkg-name');
+            if (nameInput) nameInput.name = prefix + '.Name';
+            var versionInput = rows[i].querySelector('.pkg-version');
+            if (versionInput) versionInput.name = prefix + '.Version';
+        }
+        var count = rows.length;
+        var removeButtons = document.querySelectorAll('#packageRows tbody .remove-package-row');
+        for (var r = 0; r < removeButtons.length; r++) {
+            removeButtons[r].style.visibility = count > 1 ? 'visible' : 'hidden';
+        }
+        return count;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var addButton = document.getElementById('addPackageRow');
+        var tbody = document.querySelector('#packageRows tbody');
+        var templateHolder = document.getElementById('package-row-template');
+        if (!addButton || !tbody || !templateHolder || typeof jQuery === 'undefined') return;
+
+        jQuery(addButton).on('click', function () {
+            var index = renumberPackageRows();
+            var html = templateHolder.textContent.replace(/__i__/g, index);
+            jQuery(tbody).append(html);
+            renumberPackageRows();
+            var last = tbody.lastElementChild;
+            if (last) {
+                var nameInput = last.querySelector('.pkg-name');
+                if (nameInput) nameInput.focus();
+            }
+        });
+
+        jQuery(tbody).on('click', '.remove-package-row', function () {
+            jQuery(this).closest('tr').remove();
+            renumberPackageRows();
+        });
+
+        renumberPackageRows();
+    });
+})();
+</script>

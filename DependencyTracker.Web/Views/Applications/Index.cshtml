@@ -242,6 +242,21 @@ else
                                         }
                                     </div>
                                 }
+                                @if (app.Packages != null && app.Packages.Any())
+                                {
+                                    <div class="mt-1">
+                                        @foreach (var pkg in app.Packages)
+                                        {
+                                            <span class="badge bg-secondary me-1 mb-1">
+                                                @pkg.PackageTypeName / @pkg.Name
+                                                @if (!string.IsNullOrWhiteSpace(pkg.Version))
+                                                {
+                                                    <text>@pkg.Version</text>
+                                                }
+                                            </span>
+                                        }
+                                    </div>
+                                }
                                 @if (app.MatchedDlls != null && app.MatchedDlls.Any())
                                 {
                                     <div class="small">

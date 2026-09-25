@@ -21,6 +21,9 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string TagNames { get; set; }
         public int DependencyCount { get; set; }
 
+        /// <summary>Packages applied to this application, for badges on the index.</summary>
+        public IEnumerable<ApplicationPackageDetailRowViewModel> Packages { get; set; }
+
         /// <summary>Matched DLLs (file name + version) when the search included a DLL filter.</summary>
         public IEnumerable<string> MatchedDlls { get; set; }
 
@@ -230,6 +233,32 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string NewTagNames { get; set; }
 
         public IList<ApplicationPropertyViewModel> Properties { get; set; }
+
+        /// <summary>
+        /// Inline package rows. Each row captures a package type, name and the
+        /// version deployed by this application; new names are added to the
+        /// shared package pool (reused by type + name, case-insensitively).
+        /// </summary>
+        public IList<ApplicationPackageRowViewModel> Packages { get; set; }
+
+        /// <summary>Package type dropdown options (from the managed catalog).</summary>
+        public IEnumerable<SelectListItem> PackageTypeOptions { get; set; }
+    }
+
+    /// <summary>One inline row in the application form's package editor.</summary>
+    public class ApplicationPackageRowViewModel
+    {
+        public int PackageTypeId { get; set; }
+        public string Name { get; set; }
+        public string Version { get; set; }
+    }
+
+    /// <summary>A package with its type and the version deployed by an application.</summary>
+    public class ApplicationPackageDetailRowViewModel
+    {
+        public string PackageTypeName { get; set; }
+        public string Name { get; set; }
+        public string Version { get; set; }
     }
 
     public class ApplicationDetailViewModel
@@ -246,6 +275,9 @@ namespace DependencyTracker.Web.Models.ViewModels
 
         /// <summary>Shared user tags applied to this application.</summary>
         public IEnumerable<ApplicationTag> Tags { get; set; }
+
+        /// <summary>Packages consumed by this application, with deployed versions.</summary>
+        public IEnumerable<ApplicationPackageDetailRowViewModel> Packages { get; set; }
 
         /// <summary>Other deployed versions of the same application name (excluding the current row).</summary>
         public IEnumerable<VersionLinkViewModel> OtherVersions { get; set; }

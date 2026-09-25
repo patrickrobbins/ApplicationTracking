@@ -20,6 +20,9 @@ IF OBJECT_ID(N'[dbo].[Dependencies]', N'U') IS NOT NULL DROP TABLE [dbo].[Depend
 IF OBJECT_ID(N'[dbo].[ApplicationTechnologyMappings]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTechnologyMappings];
 IF OBJECT_ID(N'[dbo].[ApplicationTagMappings]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTagMappings];
 IF OBJECT_ID(N'[dbo].[ApplicationTags]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTags];
+IF OBJECT_ID(N'[dbo].[ApplicationPackageMappings]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationPackageMappings];
+IF OBJECT_ID(N'[dbo].[Packages]', N'U') IS NOT NULL DROP TABLE [dbo].[Packages];
+IF OBJECT_ID(N'[dbo].[PackageTypes]', N'U') IS NOT NULL DROP TABLE [dbo].[PackageTypes];
 IF OBJECT_ID(N'[dbo].[ApplicationDlls]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationDlls];
 IF OBJECT_ID(N'[dbo].[Applications]', N'U') IS NOT NULL DROP TABLE [dbo].[Applications];
 IF OBJECT_ID(N'[dbo].[ApplicationTechnologies]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTechnologies];
@@ -241,6 +244,78 @@ GO
 
 CREATE NONCLUSTERED INDEX [IX_AppTagMap_ApplicationId] ON [dbo].[ApplicationTagMappings] ([ApplicationId] ASC);
 CREATE NONCLUSTERED INDEX [IX_AppTagMap_TagId] ON [dbo].[ApplicationTagMappings] ([TagId] ASC);
+GO
+
+/* ============================================================================
+   PackageTypes - managed, dynamic list of package ecosystems an application
+   consumes (e.g. Npm, NuGet, Maven). Package types are maintained by an
+   administrator; every package belongs to exactly one type.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[PackageTypes]
+(
+    [PackageTypeId] INT IDENTITY(1,1) NOT NULL,
+    [Name]          NVARCHAR(100)     NOT NULL,
+    [Description]   NVARCHAR(500)     NULL,
+    [IsActive]      BIT               NOT NULL CONSTRAINT [DF_PackageType_IsActive] DEFAULT (1),
+    [SortOrder]     INT               NOT NULL CONSTRAINT [DF_PackageType_SortOrder] DEFAULT (0),
+    [CreatedDate]   DATETIME2(0)      NOT NULL CONSTRAINT [DF_PackageType_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate]  DATETIME2(0)      NOT NULL CONSTRAINT [DF_PackageType_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]     NVARCHAR(128)     NULL,
+    [ModifiedBy]    NVARCHAR(128)     NULL,
+    CONSTRAINT [PK_PackageTypes] PRIMARY KEY CLUSTERED ([PackageTypeId] ASC),
+    CONSTRAINT [UQ_PackageTypes_Name] UNIQUE NONCLUSTERED ([Name] ASC)
+);
+GO
+
+/* ============================================================================
+   Packages - shared pool of normalized package names, keyed by package type.
+   Packages are created on the application form (on-the-fly) and reused by
+   (type, name) across applications. The deployed version is tracked per
+   application on the mapping table, not in this pool.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[Packages]
+(
+    [PackageId]     INT IDENTITY(1,1) NOT NULL,
+    [PackageTypeId] INT               NOT NULL,   -- -> PackageTypes
+    [Name]          NVARCHAR(200)     NOT NULL,
+    [IsActive]      BIT               NOT NULL CONSTRAINT [DF_Package_IsActive] DEFAULT (1),
+    [SortOrder]     INT               NOT NULL CONSTRAINT [DF_Package_SortOrder] DEFAULT (0),
+    [CreatedDate]   DATETIME2(0)      NOT NULL CONSTRAINT [DF_Package_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate]  DATETIME2(0)      NOT NULL CONSTRAINT [DF_Package_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]     NVARCHAR(128)     NULL,
+    [ModifiedBy]    NVARCHAR(128)     NULL,
+    CONSTRAINT [PK_Packages] PRIMARY KEY CLUSTERED ([PackageId] ASC),
+    CONSTRAINT [UQ_Packages_TypeName] UNIQUE NONCLUSTERED ([PackageTypeId] ASC, [Name] ASC),
+    CONSTRAINT [FK_Packages_PackageType] FOREIGN KEY ([PackageTypeId])
+        REFERENCES [dbo].[PackageTypes] ([PackageTypeId]) ON DELETE CASCADE
+);
+GO
+
+CREATE NONCLUSTERED INDEX [IX_Packages_PackageTypeId] ON [dbo].[Packages] ([PackageTypeId] ASC);
+GO
+
+/* ============================================================================
+   ApplicationPackageMappings - many-to-many join between applications and
+   shared packages, with the deployed version tracked per application.
+   Deleting an application or a package removes its mappings.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[ApplicationPackageMappings]
+(
+    [MappingId]     INT IDENTITY(1,1) NOT NULL,
+    [ApplicationId] INT               NOT NULL,   -- -> Applications
+    [PackageId]     INT               NOT NULL,   -- -> Packages
+    [Version]       NVARCHAR(100)     NULL,       -- deployed package version (e.g. 13.0.3)
+    CONSTRAINT [PK_ApplicationPackageMappings] PRIMARY KEY CLUSTERED ([MappingId] ASC),
+    CONSTRAINT [FK_AppPackageMap_Application] FOREIGN KEY ([ApplicationId])
+        REFERENCES [dbo].[Applications] ([ApplicationId]) ON DELETE CASCADE,
+    CONSTRAINT [FK_AppPackageMap_Package] FOREIGN KEY ([PackageId])
+        REFERENCES [dbo].[Packages] ([PackageId]) ON DELETE CASCADE,
+    CONSTRAINT [UQ_AppPackageMap_App_Package] UNIQUE NONCLUSTERED ([ApplicationId] ASC, [PackageId] ASC)
+);
+GO
+
+CREATE NONCLUSTERED INDEX [IX_AppPackageMap_ApplicationId] ON [dbo].[ApplicationPackageMappings] ([ApplicationId] ASC);
+CREATE NONCLUSTERED INDEX [IX_AppPackageMap_PackageId] ON [dbo].[ApplicationPackageMappings] ([PackageId] ASC);
 GO
 
 /* ============================================================================

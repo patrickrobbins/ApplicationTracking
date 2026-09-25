@@ -21,6 +21,8 @@ namespace DependencyTracker.Web.Controllers
         private readonly IApplicationFamilyService _familyService;
         private readonly ITechnicalOwnershipTeamService _teamService;
         private readonly IApplicationTagService _tagService;
+        private readonly IPackageService _packageService;
+        private readonly IPackageTypeService _packageTypeService;
         private readonly IAppDiscoveryService _discoveryService;
         private readonly IApplicationDllService _dllService;
         private readonly IRoleProvider _roleProvider;
@@ -34,6 +36,8 @@ namespace DependencyTracker.Web.Controllers
             IApplicationFamilyService familyService,
             ITechnicalOwnershipTeamService teamService,
             IApplicationTagService tagService,
+            IPackageService packageService,
+            IPackageTypeService packageTypeService,
             IAppDiscoveryService discoveryService,
             IApplicationDllService dllService,
             IRoleProvider roleProvider)
@@ -46,6 +50,8 @@ namespace DependencyTracker.Web.Controllers
             _familyService = familyService;
             _teamService = teamService;
             _tagService = tagService;
+            _packageService = packageService;
+            _packageTypeService = packageTypeService;
             _discoveryService = discoveryService;
             _dllService = dllService;
             _roleProvider = roleProvider;
@@ -98,6 +104,18 @@ namespace DependencyTracker.Web.Controllers
                 TagNames = a.TagMappings == null || !a.TagMappings.Any()
                     ? null
                     : string.Join(", ", a.TagMappings.Select(m => m.Tag.Name).OrderBy(t => t)),
+                Packages = a.PackageMappings == null || !a.PackageMappings.Any()
+                    ? null
+                    : a.PackageMappings
+                        .Select(m => new ApplicationPackageDetailRowViewModel
+                        {
+                            PackageTypeName = m.Package.PackageType == null ? null : m.Package.PackageType.Name,
+                            Name = m.Package.Name,
+                            Version = m.Version
+                        })
+                        .OrderBy(p => p.PackageTypeName)
+                        .ThenBy(p => p.Name)
+                        .ToList(),
                 IsDeleted = a.IsDeleted,
                 DependencyCount = dependencyCounts.TryGetValue(a.ApplicationId, out var count) ? count : 0,
                 MatchedDlls = matchedDlls.ContainsKey(a.ApplicationId) ? matchedDlls[a.ApplicationId] : null
@@ -211,6 +229,14 @@ namespace DependencyTracker.Web.Controllers
                 Properties = BuildPropertyViewModels(id.Value).ToList(),
                 Technologies = _technologyService.GetForApplication(id.Value).ToList(),
                 Tags = _tagService.GetForApplication(id.Value).ToList(),
+                Packages = _packageService.GetMappingsForApplication(id.Value)
+                    .Select(m => new ApplicationPackageDetailRowViewModel
+                    {
+                        PackageTypeName = m.Package.PackageType == null ? null : m.Package.PackageType.Name,
+                        Name = m.Package.Name,
+                        Version = m.Version
+                    })
+                    .ToList(),
                 Dlls = _dllService.GetForApplication(id.Value).Select(d => new ApplicationDllViewModel
                 {
                     FileName = d.FileName,
@@ -261,7 +287,9 @@ namespace DependencyTracker.Web.Controllers
                 SelectedTechnologyIds = new int[0],
                 FamilyOptions = FamilyOptions(null),
                 TeamOptions = TeamOptions(null),
-                TagOptions = TagOptions(new int[0], null)
+                TagOptions = TagOptions(new int[0], null),
+                PackageTypeOptions = PackageTypeOptions(null),
+                Packages = new List<ApplicationPackageRowViewModel>()
             };
             return View(model);
         }
@@ -312,6 +340,7 @@ namespace DependencyTracker.Web.Controllers
                     _technologyService.SetForApplication(application.ApplicationId, model.SelectedTechnologyIds, _roleProvider.CurrentUserFullName);
                     var tagIds = ResolveTagIds(model, _roleProvider.CurrentUserFullName);
                     _tagService.SetForApplication(application.ApplicationId, tagIds, _roleProvider.CurrentUserFullName);
+                    _packageService.SetForApplication(application.ApplicationId, ToPackageInputs(model.Packages), _roleProvider.CurrentUserFullName);
                     TempData["SuccessMessage"] = $"Application '{application.Name}' created successfully.";
                     return RedirectToAction("Details", new { id = application.ApplicationId });
                 }
@@ -329,6 +358,7 @@ namespace DependencyTracker.Web.Controllers
             model.FamilyOptions = FamilyOptions(model.FamilyId);
             model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
             model.TagOptions = TagOptions(model.SelectedTagIds, null);
+            model.PackageTypeOptions = PackageTypeOptions(model.Packages);
             return View(model);
         }
 
@@ -387,6 +417,15 @@ namespace DependencyTracker.Web.Controllers
                 TagOptions = TagOptions(_tagService.GetForApplication(application.ApplicationId).Select(t => t.TagId), null),
                 SelectedTagIds = _tagService.GetForApplication(application.ApplicationId)
                     .Select(t => t.TagId)
+                    .ToList(),
+                PackageTypeOptions = PackageTypeOptions(null),
+                Packages = _packageService.GetMappingsForApplication(application.ApplicationId)
+                    .Select(m => new ApplicationPackageRowViewModel
+                    {
+                        PackageTypeId = m.Package.PackageTypeId,
+                        Name = m.Package.Name,
+                        Version = m.Version
+                    })
                     .ToList()
             };
 
@@ -441,6 +480,7 @@ namespace DependencyTracker.Web.Controllers
                     _technologyService.SetForApplication(application.ApplicationId, model.SelectedTechnologyIds, _roleProvider.CurrentUserFullName);
                     var tagIds = ResolveTagIds(model, _roleProvider.CurrentUserFullName);
                     _tagService.SetForApplication(application.ApplicationId, tagIds, _roleProvider.CurrentUserFullName);
+                    _packageService.SetForApplication(application.ApplicationId, ToPackageInputs(model.Packages), _roleProvider.CurrentUserFullName);
                     SavePropertyValues(model);
                     TempData["SuccessMessage"] = $"Application '{application.Name}' updated successfully.";
                     return RedirectToAction("Details", new { id = application.ApplicationId });
@@ -459,6 +499,7 @@ namespace DependencyTracker.Web.Controllers
             model.FamilyOptions = FamilyOptions(model.FamilyId);
             model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
             model.TagOptions = TagOptions(model.SelectedTagIds, null);
+            model.PackageTypeOptions = PackageTypeOptions(model.Packages);
             return View(model);
         }
 
@@ -609,6 +650,43 @@ namespace DependencyTracker.Web.Controllers
                 if (team != null)
                     yield return new SelectListItem { Text = team.Name + " (inactive)", Value = team.TeamId.ToString(), Selected = true };
             }
+        }
+
+        /// <summary>
+        /// Package type options for the inline package rows. Active types are listed
+        /// first; a type row already in use but deactivated is appended so it can be
+        /// re-selected without the value silently disappearing.
+        /// </summary>
+        private IEnumerable<SelectListItem> PackageTypeOptions(IList<ApplicationPackageRowViewModel> rows)
+        {
+            var active = _packageTypeService.GetActivePackageTypes().ToList();
+            foreach (var t in active)
+                yield return new SelectListItem { Text = t.Name, Value = t.PackageTypeId.ToString() };
+
+            var usedTypeIds = rows == null
+                ? Enumerable.Empty<int>()
+                : rows.Where(r => r.PackageTypeId > 0).Select(r => r.PackageTypeId).Distinct();
+            foreach (var id in usedTypeIds.Where(id => !active.Any(t => t.PackageTypeId == id)))
+            {
+                var type = _packageTypeService.GetById(id);
+                if (type != null)
+                    yield return new SelectListItem { Text = type.Name + " (inactive)", Value = type.PackageTypeId.ToString() };
+            }
+        }
+
+        private static IEnumerable<ApplicationPackageInput> ToPackageInputs(IList<ApplicationPackageRowViewModel> packages)
+        {
+            if (packages == null)
+                return Enumerable.Empty<ApplicationPackageInput>();
+
+            return packages
+                .Where(p => !string.IsNullOrWhiteSpace(p.Name))
+                .Select(p => new ApplicationPackageInput
+                {
+                    PackageTypeId = p.PackageTypeId,
+                    Name = p.Name,
+                    Version = p.Version
+                });
         }
 
         /// <summary>

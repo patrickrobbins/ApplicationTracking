@@ -45,6 +45,12 @@ namespace DependencyTracker.Data.Models
 
         public DbSet<ApplicationTagMapping> ApplicationTagMappings { get; set; }
 
+        public DbSet<PackageType> PackageTypes { get; set; }
+
+        public DbSet<Package> Packages { get; set; }
+
+        public DbSet<ApplicationPackageMapping> ApplicationPackageMappings { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
@@ -197,6 +203,40 @@ namespace DependencyTracker.Data.Models
                 .HasMany(t => t.Mappings)
                 .WithRequired(m => m.Tag)
                 .HasForeignKey(m => m.TagId)
+                .WillCascadeOnDelete(true);
+
+            // Package type name is unique; packages reference exactly one type
+            modelBuilder.Entity<PackageType>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
+            modelBuilder.Entity<PackageType>()
+                .Property(t => t.Description).HasMaxLength(500);
+
+            // Package pool is unique per (type, name) and cascades with its type
+            modelBuilder.Entity<Package>()
+                .HasIndex(p => new { p.PackageTypeId, p.Name })
+                .IsUnique();
+            modelBuilder.Entity<PackageType>()
+                .HasMany(t => t.Packages)
+                .WithRequired(p => p.PackageType)
+                .HasForeignKey(p => p.PackageTypeId)
+                .WillCascadeOnDelete(true);
+
+            // One mapping per (application, package); cascade both ways
+            modelBuilder.Entity<ApplicationPackageMapping>()
+                .HasIndex(m => new { m.ApplicationId, m.PackageId })
+                .IsUnique();
+            modelBuilder.Entity<ApplicationPackageMapping>()
+                .Property(m => m.Version).HasMaxLength(100);
+            modelBuilder.Entity<Application>()
+                .HasMany(a => a.PackageMappings)
+                .WithRequired(m => m.Application)
+                .HasForeignKey(m => m.ApplicationId)
+                .WillCascadeOnDelete(true);
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.Mappings)
+                .WithRequired(m => m.Package)
+                .HasForeignKey(m => m.PackageId)
                 .WillCascadeOnDelete(true);
 
             base.OnModelCreating(modelBuilder);

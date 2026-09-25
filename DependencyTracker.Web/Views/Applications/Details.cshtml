@@ -191,6 +191,7 @@
 @* Technology & operations *@
 @if (Model.Technologies != null && Model.Technologies.Any()
     || Model.Tags != null && Model.Tags.Any()
+    || Model.Packages != null && Model.Packages.Any()
     || !string.IsNullOrEmpty(Model.Application.ApplicationIDE)
     || !string.IsNullOrEmpty(Model.Application.FrameworkVersion)
     || !string.IsNullOrEmpty(Model.Application.DocumentationLink)
@@ -226,6 +227,31 @@
                             <span class="badge bg-info text-dark border me-1">@tag.Name</span>
                         }
                     </div>
+                </div>
+            }
+            @if (Model.Packages != null && Model.Packages.Any())
+            {
+                <div class="mb-3">
+                    <div class="small text-muted mb-1">Packages</div>
+                    <table class="table table-sm table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Package</th>
+                                <th>Type</th>
+                                <th>Version</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pkg in Model.Packages)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@pkg.Name</td>
+                                    <td><span class="badge bg-light text-dark border">@pkg.PackageTypeName</span></td>
+                                    <td>@(string.IsNullOrWhiteSpace(pkg.Version) ? "-" : pkg.Version)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             }
             <div class="row">

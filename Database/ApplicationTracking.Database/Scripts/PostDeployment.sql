@@ -17,6 +17,7 @@ GO
 :r .\Seed\Seed_ApplicationDlls.sql
 :r .\Seed\Seed_ApplicationTechnologies.sql
 :r .\Seed\Seed_ApplicationPropertyDefinitions.sql
+:r .\Seed\Seed_PackageTypes.sql
 
 PRINT N'Post-deployment seed complete.';
 GO

@@ -33,12 +33,15 @@
     <Build Include="Tables\ApplicationFamilies.sql" />
     <Build Include="Tables\ApplicationPropertyDefinitions.sql" />
     <Build Include="Tables\ApplicationPropertyValues.sql" />
+    <Build Include="Tables\Applications.sql" />
     <Build Include="Tables\ApplicationTags.sql" />
     <Build Include="Tables\ApplicationTagMappings.sql" />
     <Build Include="Tables\ApplicationTechnologies.sql" />
     <Build Include="Tables\ApplicationTechnologyMappings.sql" />
-    <Build Include="Tables\Applications.sql" />
+    <Build Include="Tables\ApplicationPackageMappings.sql" />
     <Build Include="Tables\Dependencies.sql" />
+    <Build Include="Tables\Packages.sql" />
+    <Build Include="Tables\PackageTypes.sql" />
     <Build Include="Tables\TechnicalOwnershipTeams.sql" />
     <Build Include="StoredProcedures\GetDependencyChain.sql" />
     <None Include="Profiles\LocalDB.publish.xml" />
@@ -50,6 +53,7 @@
     <None Include="Scripts\Seed\Seed_ApplicationTechnologies.sql" />
     <None Include="Scripts\Seed\Seed_Applications.sql" />
     <None Include="Scripts\Seed\Seed_Dependencies.sql" />
+    <None Include="Scripts\Seed\Seed_PackageTypes.sql" />
     <None Include="Scripts\Seed\Seed_TechnicalOwnershipTeams.sql" />
     <PostDeploy Include="Scripts\PostDeployment.sql" />
   </ItemGroup>

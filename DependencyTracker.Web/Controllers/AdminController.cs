@@ -19,11 +19,13 @@ namespace DependencyTracker.Web.Controllers
         private readonly IApplicationFamilyService _familyService;
         private readonly ITechnicalOwnershipTeamService _teamService;
         private readonly IApplicationTagService _tagService;
+        private readonly IPackageTypeService _packageTypeService;
 
         public AdminController(IAdminService adminService, IRoleProvider roleProvider,
             IApplicationPropertyService propertyService, IApplicationCategoryService categoryService,
             IApplicationTechnologyService technologyService, IApplicationFamilyService familyService,
-            ITechnicalOwnershipTeamService teamService, IApplicationTagService tagService)
+            ITechnicalOwnershipTeamService teamService, IApplicationTagService tagService,
+            IPackageTypeService packageTypeService)
         {
             _adminService = adminService;
             _roleProvider = roleProvider;
@@ -33,6 +35,7 @@ namespace DependencyTracker.Web.Controllers
             _familyService = familyService;
             _teamService = teamService;
             _tagService = tagService;
+            _packageTypeService = packageTypeService;
         }
 
         // GET: /Admin
@@ -919,6 +922,124 @@ namespace DependencyTracker.Web.Controllers
             _tagService.Delete(id.Value, _roleProvider.CurrentUserFullName);
             TempData["SuccessMessage"] = "Tag removed; applications no longer carry the tag.";
             return RedirectToAction("Tags");
+        }
+
+        // GET: /Admin/PackageTypes
+        public ActionResult PackageTypes()
+        {
+            return View(_packageTypeService.GetPackageTypes().ToList());
+        }
+
+        // GET: /Admin/PackageType/Create
+        public ActionResult PackageTypeCreate()
+        {
+            var model = new PackageTypeViewModel { IsActive = true };
+            return View(model);
+        }
+
+        // POST: /Admin/PackageType/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PackageTypeCreate(PackageTypeViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var packageType = new PackageType
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _packageTypeService.Create(packageType, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Package type '{packageType.Name}' added.";
+                    return RedirectToAction("PackageTypes");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // GET: /Admin/PackageType/Edit/5
+        public ActionResult PackageTypeEdit(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var packageType = _packageTypeService.GetById(id.Value);
+            if (packageType == null)
+                return HttpNotFound();
+
+            var model = new PackageTypeViewModel
+            {
+                PackageTypeId = packageType.PackageTypeId,
+                Name = packageType.Name,
+                Description = packageType.Description,
+                IsActive = packageType.IsActive,
+                SortOrder = packageType.SortOrder
+            };
+            return View(model);
+        }
+
+        // POST: /Admin/PackageType/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PackageTypeEdit(PackageTypeViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var packageType = new PackageType
+                    {
+                        PackageTypeId = model.PackageTypeId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _packageTypeService.Update(packageType, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Package type '{packageType.Name}' updated.";
+                    return RedirectToAction("PackageTypes");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: /Admin/PackageType/Toggle/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PackageTypeToggle(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _packageTypeService.ToggleActive(id.Value, _roleProvider.CurrentUserFullName);
+            return RedirectToAction("PackageTypes");
+        }
+
+        // POST: /Admin/PackageType/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PackageTypeDelete(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _packageTypeService.Delete(id.Value, _roleProvider.CurrentUserFullName);
+            TempData["SuccessMessage"] = "Package type removed; packages of that type and their mappings are removed too.";
+            return RedirectToAction("PackageTypes");
         }
 
         private string GetServerInfo()

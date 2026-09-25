@@ -37,6 +37,7 @@ namespace DependencyTracker.Data.Repositories
                 .Include(a => a.Family)
                 .Include(a => a.TechnicalOwnershipTeam)
                 .Include(a => a.TagMappings.Select(m => m.Tag))
+                .Include(a => a.PackageMappings.Select(m => m.Package.PackageType))
                 .Where(a => includeDeleted || !a.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(term))
@@ -50,7 +51,8 @@ namespace DependencyTracker.Data.Repositories
                     a.BusinessBackup.Contains(term) ||
                     a.BusinessBackupEmail.Contains(term) ||
                     a.TechnicalOwnerEmail.Contains(term) ||
-                    a.TechnicalOwnershipTeam.Name.Contains(term));
+                    a.TechnicalOwnershipTeam.Name.Contains(term) ||
+                    a.PackageMappings.Any(m => m.Package.Name.Contains(term)));
             }
 
             if (!string.IsNullOrWhiteSpace(environment))

@@ -163,6 +163,9 @@ namespace DependencyTracker.Data.Models
         [InverseProperty("Application")]
         public virtual ICollection<ApplicationTagMapping> TagMappings { get; set; }
 
+        [InverseProperty("Application")]
+        public virtual ICollection<ApplicationPackageMapping> PackageMappings { get; set; }
+
         public Application()
         {
             OutgoingDependencies = new HashSet<Dependency>();
@@ -170,6 +173,7 @@ namespace DependencyTracker.Data.Models
             Dlls = new HashSet<ApplicationDll>();
             TechnologyMappings = new HashSet<ApplicationTechnologyMapping>();
             TagMappings = new HashSet<ApplicationTagMapping>();
+            PackageMappings = new HashSet<ApplicationPackageMapping>();
         }
     }
 }

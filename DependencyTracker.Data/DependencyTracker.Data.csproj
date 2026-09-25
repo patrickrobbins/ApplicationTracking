@@ -57,12 +57,15 @@
     <Compile Include="Models\ApplicationFamily.cs" />
     <Compile Include="Models\ApplicationTag.cs" />
     <Compile Include="Models\ApplicationTagMapping.cs" />
+    <Compile Include="Models\ApplicationPackageMapping.cs" />
     <Compile Include="Models\ApplicationTechnology.cs" />
     <Compile Include="Models\ApplicationTechnologyMapping.cs" />
     <Compile Include="Models\ApplicationPropertyDefinition.cs" />
     <Compile Include="Models\ApplicationPropertyValue.cs" />
     <Compile Include="Models\Dependency.cs" />
     <Compile Include="Models\DependencyTrackerDbContext.cs" />
+    <Compile Include="Models\Package.cs" />
+    <Compile Include="Models\PackageType.cs" />
 
     <Compile Include="Models\TechnicalOwnershipTeam.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -78,6 +81,10 @@
     <Compile Include="Repositories\TechnicalOwnershipTeamRepository.cs" />
     <Compile Include="Repositories\IApplicationTagRepository.cs" />
     <Compile Include="Repositories\ApplicationTagRepository.cs" />
+    <Compile Include="Repositories\IPackageTypeRepository.cs" />
+    <Compile Include="Repositories\PackageTypeRepository.cs" />
+    <Compile Include="Repositories\IPackageRepository.cs" />
+    <Compile Include="Repositories\PackageRepository.cs" />
     <Compile Include="Repositories\IApplicationTechnologyRepository.cs" />
     <Compile Include="Repositories\ApplicationTechnologyRepository.cs" />
     <Compile Include="Repositories\IApplicationPropertyRepository.cs" />
@@ -101,6 +108,11 @@
     <Compile Include="Services\TechnicalOwnershipTeamService.cs" />
     <Compile Include="Services\IApplicationTagService.cs" />
     <Compile Include="Services\ApplicationTagService.cs" />
+    <Compile Include="Services\IPackageTypeService.cs" />
+    <Compile Include="Services\PackageTypeService.cs" />
+    <Compile Include="Services\IPackageService.cs" />
+    <Compile Include="Services\PackageService.cs" />
+    <Compile Include="Services\ApplicationPackageInput.cs" />
     <Compile Include="Services\IApplicationTechnologyService.cs" />
     <Compile Include="Services\ApplicationTechnologyService.cs" />
     <Compile Include="Services\IApplicationPropertyService.cs" />
