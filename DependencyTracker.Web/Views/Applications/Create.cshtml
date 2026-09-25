@@ -61,6 +61,11 @@
                             <div class="form-text">Application families are maintained in the <a href="@Url.Action("Families", "Admin")">Administration</a> area.</div>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label">Application Type</label>
+                            @Html.DropDownListFor(m => m.ApplicationTypeId, Model.ApplicationTypeOptions, "Select...", new { @class = "form-select" })
+                            <div class="form-text">Application types are maintained in the <a href="@Url.Action("ApplicationTypes", "Admin")">Administration</a> area.</div>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Technical Ownership Team</label>
                             @Html.DropDownListFor(m => m.TechnicalOwnershipTeamId, Model.TeamOptions, "Select...", new { @class = "form-select" })
                             <div class="form-text">Teams are maintained in the <a href="@Url.Action("Teams", "Admin")">Administration</a> area.</div>

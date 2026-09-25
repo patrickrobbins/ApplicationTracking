@@ -38,6 +38,7 @@
     <Build Include="Tables\ApplicationTagMappings.sql" />
     <Build Include="Tables\ApplicationTechnologies.sql" />
     <Build Include="Tables\ApplicationTechnologyMappings.sql" />
+    <Build Include="Tables\ApplicationTypes.sql" />
     <Build Include="Tables\ApplicationPackageMappings.sql" />
     <Build Include="Tables\Dependencies.sql" />
     <Build Include="Tables\Packages.sql" />
@@ -51,6 +52,7 @@
     <None Include="Scripts\Seed\Seed_ApplicationFamilies.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationPropertyDefinitions.sql" />
     <None Include="Scripts\Seed\Seed_ApplicationTechnologies.sql" />
+    <None Include="Scripts\Seed\Seed_ApplicationTypes.sql" />
     <None Include="Scripts\Seed\Seed_Applications.sql" />
     <None Include="Scripts\Seed\Seed_Dependencies.sql" />
     <None Include="Scripts\Seed\Seed_PackageTypes.sql" />

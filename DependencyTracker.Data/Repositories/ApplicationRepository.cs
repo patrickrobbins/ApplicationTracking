@@ -30,11 +30,12 @@ namespace DependencyTracker.Data.Repositories
                 .ToList();
         }
 
-        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, string sortBy, bool includeDeleted)
+        public IEnumerable<Application> Search(string term, string environment, string status, string criticality, int? categoryId, string version, int? technologyId, int? familyId, int? tagId, int? applicationTypeId, string sortBy, bool includeDeleted)
         {
             var query = DbSet
                 .Include(a => a.Category)
                 .Include(a => a.Family)
+                .Include(a => a.ApplicationType)
                 .Include(a => a.TechnicalOwnershipTeam)
                 .Include(a => a.TagMappings.Select(m => m.Tag))
                 .Include(a => a.PackageMappings.Select(m => m.Package.PackageType))
@@ -72,6 +73,9 @@ namespace DependencyTracker.Data.Repositories
 
             if (familyId.HasValue)
                 query = query.Where(a => a.FamilyId == familyId.Value);
+
+            if (applicationTypeId.HasValue)
+                query = query.Where(a => a.ApplicationTypeId == applicationTypeId.Value);
 
             if (tagId.HasValue)
                 query = query.Where(a => a.TagMappings.Any(m => m.TagId == tagId.Value));

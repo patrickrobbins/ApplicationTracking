@@ -39,6 +39,8 @@ namespace DependencyTracker.Data.Models
 
         public DbSet<ApplicationFamily> ApplicationFamilies { get; set; }
 
+        public DbSet<ApplicationType> ApplicationTypes { get; set; }
+
         public DbSet<TechnicalOwnershipTeam> TechnicalOwnershipTeams { get; set; }
 
         public DbSet<ApplicationTag> ApplicationTags { get; set; }
@@ -135,6 +137,18 @@ namespace DependencyTracker.Data.Models
                 .HasOptional(a => a.Family)
                 .WithMany()
                 .HasForeignKey(a => a.FamilyId)
+                .WillCascadeOnDelete(false);
+
+            // Application type name is unique; deleting leaves apps untyped
+            modelBuilder.Entity<ApplicationType>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
+            modelBuilder.Entity<ApplicationType>()
+                .Property(t => t.Description).HasMaxLength(500);
+            modelBuilder.Entity<Application>()
+                .HasOptional(a => a.ApplicationType)
+                .WithMany()
+                .HasForeignKey(a => a.ApplicationTypeId)
                 .WillCascadeOnDelete(false);
 
             // Technical ownership team name is unique; deleting leaves apps unowned

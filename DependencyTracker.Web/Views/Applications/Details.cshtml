@@ -125,6 +125,10 @@
                             <div class="fw-semibold">@(Model.Application.Family == null ? "-" : Model.Application.Family.Name)</div>
                         </div>
                         <div class="mb-3">
+                            <div class="small text-muted">Application Type</div>
+                            <div class="fw-semibold">@(Model.Application.ApplicationType == null ? "-" : Model.Application.ApplicationType.Name)</div>
+                        </div>
+                        <div class="mb-3">
                             <div class="small text-muted">Technical Ownership Team</div>
                             <div class="fw-semibold">@(Model.Application.TechnicalOwnershipTeam == null ? "-" : Model.Application.TechnicalOwnershipTeam.Name)</div>
                             <div class="small">

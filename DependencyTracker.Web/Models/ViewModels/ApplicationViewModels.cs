@@ -17,6 +17,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string Status { get; set; }
         public string Category { get; set; }
         public string Family { get; set; }
+        public string ApplicationType { get; set; }
         public string Team { get; set; }
         public string TagNames { get; set; }
         public int DependencyCount { get; set; }
@@ -63,6 +64,9 @@ namespace DependencyTracker.Web.Models.ViewModels
         /// <summary>Application family filter (exact id).</summary>
         public int? FamilyId { get; set; }
 
+        /// <summary>Application type filter (exact id).</summary>
+        public int? ApplicationTypeId { get; set; }
+
         /// <summary>Shared user tag filter (exact id).</summary>
         public int? TagId { get; set; }
 
@@ -90,6 +94,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         public IEnumerable<SelectListItem> Categories { get; set; }
         public IEnumerable<SelectListItem> Technologies { get; set; }
         public IEnumerable<SelectListItem> Families { get; set; }
+        public IEnumerable<SelectListItem> ApplicationTypes { get; set; }
         public IEnumerable<SelectListItem> Tags { get; set; }
         public IEnumerable<SelectListItem> SortOptions { get; set; }
         public IEnumerable<ApplicationListItemViewModel> Results { get; set; }
@@ -158,6 +163,8 @@ namespace DependencyTracker.Web.Models.ViewModels
 
         public int? FamilyId { get; set; }
 
+        public int? ApplicationTypeId { get; set; }
+
         public int? TechnicalOwnershipTeamId { get; set; }
 
         [StringLength(500)]
@@ -213,6 +220,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         public IEnumerable<SelectListItem> StatusOptions { get; set; }
         public IEnumerable<SelectListItem> CategoryOptions { get; set; }
         public IEnumerable<SelectListItem> FamilyOptions { get; set; }
+        public IEnumerable<SelectListItem> ApplicationTypeOptions { get; set; }
         public IEnumerable<SelectListItem> TeamOptions { get; set; }
 
         /// <summary>Ids of the technology tags applied to this application.</summary>

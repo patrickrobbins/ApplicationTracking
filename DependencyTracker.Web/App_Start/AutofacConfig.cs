@@ -42,6 +42,7 @@ namespace DependencyTracker.Web.App_Start
             builder.RegisterType<ApplicationCategoryRepository>().As<IApplicationCategoryRepository>().InstancePerRequest();
             builder.RegisterType<ApplicationTechnologyRepository>().As<IApplicationTechnologyRepository>().InstancePerRequest();
             builder.RegisterType<ApplicationFamilyRepository>().As<IApplicationFamilyRepository>().InstancePerRequest();
+            builder.RegisterType<ApplicationTypeRepository>().As<IApplicationTypeRepository>().InstancePerRequest();
             builder.RegisterType<TechnicalOwnershipTeamRepository>().As<ITechnicalOwnershipTeamRepository>().InstancePerRequest();
             builder.RegisterType<ApplicationTagRepository>().As<IApplicationTagRepository>().InstancePerRequest();
             builder.RegisterType<PackageTypeRepository>().As<IPackageTypeRepository>().InstancePerRequest();
@@ -55,6 +56,7 @@ namespace DependencyTracker.Web.App_Start
             builder.RegisterType<ApplicationCategoryService>().As<IApplicationCategoryService>().InstancePerRequest();
             builder.RegisterType<ApplicationTechnologyService>().As<IApplicationTechnologyService>().InstancePerRequest();
             builder.RegisterType<ApplicationFamilyService>().As<IApplicationFamilyService>().InstancePerRequest();
+            builder.RegisterType<ApplicationTypeService>().As<IApplicationTypeService>().InstancePerRequest();
             builder.RegisterType<TechnicalOwnershipTeamService>().As<ITechnicalOwnershipTeamService>().InstancePerRequest();
             builder.RegisterType<ApplicationTagService>().As<IApplicationTagService>().InstancePerRequest();
             builder.RegisterType<PackageTypeService>().As<IPackageTypeService>().InstancePerRequest();

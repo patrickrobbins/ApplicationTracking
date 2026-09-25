@@ -132,6 +132,11 @@ namespace DependencyTracker.Data.Models
         [ForeignKey("TechnicalOwnershipTeamId")]
         public virtual TechnicalOwnershipTeam TechnicalOwnershipTeam { get; set; }
 
+        public int? ApplicationTypeId { get; set; }
+
+        [ForeignKey("ApplicationTypeId")]
+        public virtual ApplicationType ApplicationType { get; set; }
+
         /// <summary>
         /// Soft-delete flag. Deleted applications are hidden from the registry,
         /// graph and discovery but kept in the database so they can be restored.

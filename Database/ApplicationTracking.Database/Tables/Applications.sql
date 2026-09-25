@@ -13,6 +13,7 @@ CREATE TABLE [dbo].[Applications]
     [CategoryId]        INT               NULL,
     [FamilyId]          INT               NULL,
     [TechnicalOwnershipTeamId] INT        NULL,
+    [ApplicationTypeId] INT               NULL,
     [Environment]       NVARCHAR(50)      NULL,
     [CriticalityLevel]  NVARCHAR(20)      NULL,
     [Status]            NVARCHAR(20)      NOT NULL CONSTRAINT [DF_Applications_Status] DEFAULT (N'Active'),
@@ -42,6 +43,8 @@ CREATE TABLE [dbo].[Applications]
         REFERENCES [dbo].[ApplicationFamilies] ([FamilyId]) ON DELETE SET NULL,
     CONSTRAINT [FK_Applications_OwnershipTeam] FOREIGN KEY ([TechnicalOwnershipTeamId])
         REFERENCES [dbo].[TechnicalOwnershipTeams] ([TeamId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_ApplicationType] FOREIGN KEY ([ApplicationTypeId])
+        REFERENCES [dbo].[ApplicationTypes] ([ApplicationTypeId]) ON DELETE SET NULL,
     CONSTRAINT [CK_Applications_Environment] CHECK ([Environment] IN (N'Production', N'Staging', N'Development')),
     CONSTRAINT [CK_Applications_Criticality] CHECK ([CriticalityLevel] IN (N'Critical', N'High', N'Medium', N'Low')),
     CONSTRAINT [CK_Applications_Status] CHECK ([Status] IN (N'Active', N'Retired', N'Planned')),
@@ -61,6 +64,8 @@ GO
 CREATE NONCLUSTERED INDEX [IX_Applications_FamilyId] ON [dbo].[Applications] ([FamilyId] ASC);
 GO
 CREATE NONCLUSTERED INDEX [IX_Applications_TechnicalOwnershipTeamId] ON [dbo].[Applications] ([TechnicalOwnershipTeamId] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Applications_ApplicationTypeId] ON [dbo].[Applications] ([ApplicationTypeId] ASC);
 GO
 CREATE NONCLUSTERED INDEX [IX_Applications_SourcePath] ON [dbo].[Applications] ([SourcePath] ASC);
 GO

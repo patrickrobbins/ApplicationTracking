@@ -20,12 +20,13 @@ namespace DependencyTracker.Web.Controllers
         private readonly ITechnicalOwnershipTeamService _teamService;
         private readonly IApplicationTagService _tagService;
         private readonly IPackageTypeService _packageTypeService;
+        private readonly IApplicationTypeService _applicationTypeService;
 
         public AdminController(IAdminService adminService, IRoleProvider roleProvider,
             IApplicationPropertyService propertyService, IApplicationCategoryService categoryService,
             IApplicationTechnologyService technologyService, IApplicationFamilyService familyService,
             ITechnicalOwnershipTeamService teamService, IApplicationTagService tagService,
-            IPackageTypeService packageTypeService)
+            IPackageTypeService packageTypeService, IApplicationTypeService applicationTypeService)
         {
             _adminService = adminService;
             _roleProvider = roleProvider;
@@ -36,6 +37,7 @@ namespace DependencyTracker.Web.Controllers
             _teamService = teamService;
             _tagService = tagService;
             _packageTypeService = packageTypeService;
+            _applicationTypeService = applicationTypeService;
         }
 
         // GET: /Admin
@@ -1040,6 +1042,124 @@ namespace DependencyTracker.Web.Controllers
             _packageTypeService.Delete(id.Value, _roleProvider.CurrentUserFullName);
             TempData["SuccessMessage"] = "Package type removed; packages of that type and their mappings are removed too.";
             return RedirectToAction("PackageTypes");
+        }
+
+        // GET: /Admin/ApplicationTypes
+        public ActionResult ApplicationTypes()
+        {
+            return View(_applicationTypeService.GetApplicationTypes().ToList());
+        }
+
+        // GET: /Admin/ApplicationType/Create
+        public ActionResult ApplicationTypeCreate()
+        {
+            var model = new ApplicationTypeViewModel { IsActive = true };
+            return View(model);
+        }
+
+        // POST: /Admin/ApplicationType/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApplicationTypeCreate(ApplicationTypeViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var applicationType = new ApplicationType
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _applicationTypeService.Create(applicationType, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Application type '{applicationType.Name}' added.";
+                    return RedirectToAction("ApplicationTypes");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // GET: /Admin/ApplicationType/Edit/5
+        public ActionResult ApplicationTypeEdit(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var applicationType = _applicationTypeService.GetById(id.Value);
+            if (applicationType == null)
+                return HttpNotFound();
+
+            var model = new ApplicationTypeViewModel
+            {
+                ApplicationTypeId = applicationType.ApplicationTypeId,
+                Name = applicationType.Name,
+                Description = applicationType.Description,
+                IsActive = applicationType.IsActive,
+                SortOrder = applicationType.SortOrder
+            };
+            return View(model);
+        }
+
+        // POST: /Admin/ApplicationType/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApplicationTypeEdit(ApplicationTypeViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var applicationType = new ApplicationType
+                    {
+                        ApplicationTypeId = model.ApplicationTypeId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        IsActive = model.IsActive,
+                        SortOrder = model.SortOrder
+                    };
+                    _applicationTypeService.Update(applicationType, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = $"Application type '{applicationType.Name}' updated.";
+                    return RedirectToAction("ApplicationTypes");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            return View(model);
+        }
+
+        // POST: /Admin/ApplicationType/Toggle/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApplicationTypeToggle(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _applicationTypeService.ToggleActive(id.Value, _roleProvider.CurrentUserFullName);
+            return RedirectToAction("ApplicationTypes");
+        }
+
+        // POST: /Admin/ApplicationType/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ApplicationTypeDelete(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            _applicationTypeService.Delete(id.Value, _roleProvider.CurrentUserFullName);
+            TempData["SuccessMessage"] = "Application type removed; affected applications are now untyped.";
+            return RedirectToAction("ApplicationTypes");
         }
 
         private string GetServerInfo()

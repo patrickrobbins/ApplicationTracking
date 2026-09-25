@@ -227,6 +227,9 @@
     <Content Include="Views\Admin\PackageTypes.cshtml" />
     <Content Include="Views\Admin\PackageTypeCreate.cshtml" />
     <Content Include="Views\Admin\PackageTypeEdit.cshtml" />
+    <Content Include="Views\Admin\ApplicationTypes.cshtml" />
+    <Content Include="Views\Admin\ApplicationTypeCreate.cshtml" />
+    <Content Include="Views\Admin\ApplicationTypeEdit.cshtml" />
     <Content Include="Views\Admin\Teams.cshtml" />
     <Content Include="Views\Admin\TeamCreate.cshtml" />
     <Content Include="Views\Admin\TeamEdit.cshtml" />

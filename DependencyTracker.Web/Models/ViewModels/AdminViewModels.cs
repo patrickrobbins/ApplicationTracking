@@ -165,6 +165,22 @@ namespace DependencyTracker.Web.Models.ViewModels
         public int SortOrder { get; set; }
     }
 
+    public class ApplicationTypeViewModel
+    {
+        public int ApplicationTypeId { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
+
+        [StringLength(500)]
+        public string Description { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int SortOrder { get; set; }
+    }
+
     public static class AdminViewModelFactory
     {
         public static IEnumerable<SelectListItem> RoleOptions(string selected)

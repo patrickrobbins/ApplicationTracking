@@ -19,6 +19,7 @@ namespace DependencyTracker.Web.Controllers
         private readonly IApplicationCategoryService _categoryService;
         private readonly IApplicationTechnologyService _technologyService;
         private readonly IApplicationFamilyService _familyService;
+        private readonly IApplicationTypeService _applicationTypeService;
         private readonly ITechnicalOwnershipTeamService _teamService;
         private readonly IApplicationTagService _tagService;
         private readonly IPackageService _packageService;
@@ -34,6 +35,7 @@ namespace DependencyTracker.Web.Controllers
             IApplicationCategoryService categoryService,
             IApplicationTechnologyService technologyService,
             IApplicationFamilyService familyService,
+            IApplicationTypeService applicationTypeService,
             ITechnicalOwnershipTeamService teamService,
             IApplicationTagService tagService,
             IPackageService packageService,
@@ -48,6 +50,7 @@ namespace DependencyTracker.Web.Controllers
             _categoryService = categoryService;
             _technologyService = technologyService;
             _familyService = familyService;
+            _applicationTypeService = applicationTypeService;
             _teamService = teamService;
             _tagService = tagService;
             _packageService = packageService;
@@ -59,11 +62,11 @@ namespace DependencyTracker.Web.Controllers
 
         // GET: /Applications
         public ActionResult Index(string term, string environment, string status, string criticality, int? categoryId,
-            string version, int? technologyId, int? familyId, int? tagId, string sortBy,
+            string version, int? technologyId, int? familyId, int? tagId, int? applicationTypeId, string sortBy,
             string dllName, string dllOperator, string dllVersion,
             bool showAllVersions = false, bool includeDeleted = false)
         {
-            var results = _applicationService.Search(term, environment, status, criticality, categoryId, version, technologyId, familyId, tagId, sortBy, includeDeleted).ToList();
+            var results = _applicationService.Search(term, environment, status, criticality, categoryId, version, technologyId, familyId, tagId, applicationTypeId, sortBy, includeDeleted).ToList();
 
             var matchedDlls = new Dictionary<int, List<string>>();
             if (!string.IsNullOrWhiteSpace(dllName))
@@ -100,6 +103,7 @@ namespace DependencyTracker.Web.Controllers
                 Status = a.Status,
                 Category = a.Category == null ? null : a.Category.Name,
                 Family = a.Family == null ? null : a.Family.Name,
+                ApplicationType = a.ApplicationType == null ? null : a.ApplicationType.Name,
                 Team = a.TechnicalOwnershipTeam == null ? null : a.TechnicalOwnershipTeam.Name,
                 TagNames = a.TagMappings == null || !a.TagMappings.Any()
                     ? null
@@ -130,6 +134,7 @@ namespace DependencyTracker.Web.Controllers
                 CategoryId = categoryId,
                 TechnologyId = technologyId,
                 FamilyId = familyId,
+                ApplicationTypeId = applicationTypeId,
                 TagId = tagId,
                 SortBy = sortBy,
                 Version = version,
@@ -146,6 +151,7 @@ namespace DependencyTracker.Web.Controllers
                 Categories = CategoryOptions(categoryId),
                 Technologies = TechnologyOptions(technologyId),
                 Families = FamilyOptions(familyId),
+                ApplicationTypes = ApplicationTypeOptions(applicationTypeId),
                 Tags = TagOptions(null, tagId),
                 SortOptions = SortOptions(sortBy),
                 CanEdit = IsEditor(),
@@ -286,6 +292,7 @@ namespace DependencyTracker.Web.Controllers
                 TechnologyOptions = TechnologyOptions(null),
                 SelectedTechnologyIds = new int[0],
                 FamilyOptions = FamilyOptions(null),
+                ApplicationTypeOptions = ApplicationTypeOptions(null),
                 TeamOptions = TeamOptions(null),
                 TagOptions = TagOptions(new int[0], null),
                 PackageTypeOptions = PackageTypeOptions(null),
@@ -317,6 +324,7 @@ namespace DependencyTracker.Web.Controllers
                         TechnicalOwnerEmail = model.TechnicalOwnerEmail,
                         CategoryId = model.CategoryId,
                         FamilyId = model.FamilyId,
+                        ApplicationTypeId = model.ApplicationTypeId,
                         TechnicalOwnershipTeamId = model.TechnicalOwnershipTeamId,
                         Environment = model.Environment,
                         CriticalityLevel = model.CriticalityLevel,
@@ -356,6 +364,7 @@ namespace DependencyTracker.Web.Controllers
             model.CategoryOptions = CategoryOptions(model.CategoryId);
             model.TechnologyOptions = TechnologyOptions(null);
             model.FamilyOptions = FamilyOptions(model.FamilyId);
+            model.ApplicationTypeOptions = ApplicationTypeOptions(model.ApplicationTypeId);
             model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
             model.TagOptions = TagOptions(model.SelectedTagIds, null);
             model.PackageTypeOptions = PackageTypeOptions(model.Packages);
@@ -387,6 +396,7 @@ namespace DependencyTracker.Web.Controllers
                 TechnicalOwnerEmail = application.TechnicalOwnerEmail,
                 CategoryId = application.CategoryId,
                 FamilyId = application.FamilyId,
+                ApplicationTypeId = application.ApplicationTypeId,
                 TechnicalOwnershipTeamId = application.TechnicalOwnershipTeamId,
                 Environment = application.Environment,
                 CriticalityLevel = application.CriticalityLevel,
@@ -413,6 +423,7 @@ namespace DependencyTracker.Web.Controllers
                     .Select(t => t.TechnologyId)
                     .ToList(),
                 FamilyOptions = FamilyOptions(application.FamilyId),
+                ApplicationTypeOptions = ApplicationTypeOptions(application.ApplicationTypeId),
                 TeamOptions = TeamOptions(application.TechnicalOwnershipTeamId),
                 TagOptions = TagOptions(_tagService.GetForApplication(application.ApplicationId).Select(t => t.TagId), null),
                 SelectedTagIds = _tagService.GetForApplication(application.ApplicationId)
@@ -457,6 +468,7 @@ namespace DependencyTracker.Web.Controllers
                         TechnicalOwnerEmail = model.TechnicalOwnerEmail,
                         CategoryId = model.CategoryId,
                         FamilyId = model.FamilyId,
+                        ApplicationTypeId = model.ApplicationTypeId,
                         TechnicalOwnershipTeamId = model.TechnicalOwnershipTeamId,
                         Environment = model.Environment,
                         CriticalityLevel = model.CriticalityLevel,
@@ -497,6 +509,7 @@ namespace DependencyTracker.Web.Controllers
             model.CategoryOptions = CategoryOptions(model.CategoryId);
             model.TechnologyOptions = TechnologyOptions(null);
             model.FamilyOptions = FamilyOptions(model.FamilyId);
+            model.ApplicationTypeOptions = ApplicationTypeOptions(model.ApplicationTypeId);
             model.TeamOptions = TeamOptions(model.TechnicalOwnershipTeamId);
             model.TagOptions = TagOptions(model.SelectedTagIds, null);
             model.PackageTypeOptions = PackageTypeOptions(model.Packages);
@@ -635,6 +648,20 @@ namespace DependencyTracker.Web.Controllers
                 var family = _familyService.GetById(selected.Value);
                 if (family != null)
                     yield return new SelectListItem { Text = family.Name + " (inactive)", Value = family.FamilyId.ToString(), Selected = true };
+            }
+        }
+
+        private IEnumerable<SelectListItem> ApplicationTypeOptions(int? selected)
+        {
+            var active = _applicationTypeService.GetActiveApplicationTypes().ToList();
+            foreach (var t in active)
+                yield return new SelectListItem { Text = t.Name, Value = t.ApplicationTypeId.ToString(), Selected = t.ApplicationTypeId == selected };
+
+            if (selected.HasValue && !active.Any(t => t.ApplicationTypeId == selected.Value))
+            {
+                var applicationType = _applicationTypeService.GetById(selected.Value);
+                if (applicationType != null)
+                    yield return new SelectListItem { Text = applicationType.Name + " (inactive)", Value = applicationType.ApplicationTypeId.ToString(), Selected = true };
             }
         }
 

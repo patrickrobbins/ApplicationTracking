@@ -28,6 +28,7 @@ IF OBJECT_ID(N'[dbo].[Applications]', N'U') IS NOT NULL DROP TABLE [dbo].[Applic
 IF OBJECT_ID(N'[dbo].[ApplicationTechnologies]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTechnologies];
 IF OBJECT_ID(N'[dbo].[ApplicationCategories]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationCategories];
 IF OBJECT_ID(N'[dbo].[ApplicationFamilies]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationFamilies];
+IF OBJECT_ID(N'[dbo].[ApplicationTypes]', N'U') IS NOT NULL DROP TABLE [dbo].[ApplicationTypes];
 IF OBJECT_ID(N'[dbo].[TechnicalOwnershipTeams]', N'U') IS NOT NULL DROP TABLE [dbo].[TechnicalOwnershipTeams];
 IF OBJECT_ID(N'[dbo].[ADGroups]', N'U') IS NOT NULL DROP TABLE [dbo].[ADGroups];
 GO
@@ -96,6 +97,28 @@ CREATE TABLE [dbo].[TechnicalOwnershipTeams]
 GO
 
 /* ============================================================================
+   ApplicationTypes - managed, dynamic list of application kinds
+   (e.g. Batch Job, Web Site, Web API, Windows Service, Desktop Application,
+   Mobile Application, Cloud Service). Maintained by an administrator and
+   referenced from Applications through a nullable foreign key.
+   ------------------------------------------------------------------------- */
+CREATE TABLE [dbo].[ApplicationTypes]
+(
+    [ApplicationTypeId] INT IDENTITY(1,1) NOT NULL,
+    [Name]              NVARCHAR(100)     NOT NULL,
+    [Description]       NVARCHAR(500)     NULL,
+    [IsActive]          BIT               NOT NULL CONSTRAINT [DF_AppType_IsActive] DEFAULT (1),
+    [SortOrder]         INT               NOT NULL CONSTRAINT [DF_AppType_SortOrder] DEFAULT (0),
+    [CreatedDate]       DATETIME2(0)      NOT NULL CONSTRAINT [DF_AppType_CreatedDate] DEFAULT (GETUTCDATE()),
+    [ModifiedDate]      DATETIME2(0)      NOT NULL CONSTRAINT [DF_AppType_ModifiedDate] DEFAULT (GETUTCDATE()),
+    [CreatedBy]         NVARCHAR(128)     NULL,
+    [ModifiedBy]        NVARCHAR(128)     NULL,
+    CONSTRAINT [PK_ApplicationTypes] PRIMARY KEY CLUSTERED ([ApplicationTypeId] ASC),
+    CONSTRAINT [UQ_ApplicationTypes_Name] UNIQUE NONCLUSTERED ([Name] ASC)
+);
+GO
+
+/* ============================================================================
    Applications
    ------------------------------------------------------------------------- */
 CREATE TABLE [dbo].[Applications]
@@ -113,6 +136,7 @@ CREATE TABLE [dbo].[Applications]
     [CategoryId]        INT               NULL,       -- -> ApplicationCategories (managed list)
     [FamilyId]          INT               NULL,       -- -> ApplicationFamilies (managed list)
     [TechnicalOwnershipTeamId] INT        NULL,       -- -> TechnicalOwnershipTeams (managed list)
+    [ApplicationTypeId] INT               NULL,       -- -> ApplicationTypes (managed list)
     [Environment]       NVARCHAR(50)      NULL,       -- Production, Staging, Development
     [CriticalityLevel]  NVARCHAR(20)      NULL,       -- Critical, High, Medium, Low
     [Status]            NVARCHAR(20)      NOT NULL CONSTRAINT [DF_Applications_Status] DEFAULT (N'Active'), -- Active, Retired, Planned
@@ -142,6 +166,8 @@ CREATE TABLE [dbo].[Applications]
         REFERENCES [dbo].[ApplicationFamilies] ([FamilyId]) ON DELETE SET NULL,
     CONSTRAINT [FK_Applications_OwnershipTeam] FOREIGN KEY ([TechnicalOwnershipTeamId])
         REFERENCES [dbo].[TechnicalOwnershipTeams] ([TeamId]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Applications_ApplicationType] FOREIGN KEY ([ApplicationTypeId])
+        REFERENCES [dbo].[ApplicationTypes] ([ApplicationTypeId]) ON DELETE SET NULL,
     CONSTRAINT [CK_Applications_Environment] CHECK ([Environment] IN (N'Production', N'Staging', N'Development')),
     CONSTRAINT [CK_Applications_Criticality] CHECK ([CriticalityLevel] IN (N'Critical', N'High', N'Medium', N'Low')),
     CONSTRAINT [CK_Applications_Status] CHECK ([Status] IN (N'Active', N'Retired', N'Planned')),
@@ -156,6 +182,7 @@ CREATE NONCLUSTERED INDEX [IX_Applications_Environment] ON [dbo].[Applications] 
 CREATE NONCLUSTERED INDEX [IX_Applications_CategoryId] ON [dbo].[Applications] ([CategoryId] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_FamilyId] ON [dbo].[Applications] ([FamilyId] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_TechnicalOwnershipTeamId] ON [dbo].[Applications] ([TechnicalOwnershipTeamId] ASC);
+CREATE NONCLUSTERED INDEX [IX_Applications_ApplicationTypeId] ON [dbo].[Applications] ([ApplicationTypeId] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_SourcePath] ON [dbo].[Applications] ([SourcePath] ASC);
 CREATE NONCLUSTERED INDEX [IX_Applications_IsDeleted] ON [dbo].[Applications] ([IsDeleted] ASC);
 GO

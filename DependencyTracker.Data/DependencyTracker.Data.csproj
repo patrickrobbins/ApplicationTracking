@@ -57,6 +57,7 @@
     <Compile Include="Models\ApplicationFamily.cs" />
     <Compile Include="Models\ApplicationTag.cs" />
     <Compile Include="Models\ApplicationTagMapping.cs" />
+    <Compile Include="Models\ApplicationType.cs" />
     <Compile Include="Models\ApplicationPackageMapping.cs" />
     <Compile Include="Models\ApplicationTechnology.cs" />
     <Compile Include="Models\ApplicationTechnologyMapping.cs" />
@@ -83,6 +84,8 @@
     <Compile Include="Repositories\ApplicationTagRepository.cs" />
     <Compile Include="Repositories\IPackageTypeRepository.cs" />
     <Compile Include="Repositories\PackageTypeRepository.cs" />
+    <Compile Include="Repositories\IApplicationTypeRepository.cs" />
+    <Compile Include="Repositories\ApplicationTypeRepository.cs" />
     <Compile Include="Repositories\IPackageRepository.cs" />
     <Compile Include="Repositories\PackageRepository.cs" />
     <Compile Include="Repositories\IApplicationTechnologyRepository.cs" />
@@ -110,6 +113,8 @@
     <Compile Include="Services\ApplicationTagService.cs" />
     <Compile Include="Services\IPackageTypeService.cs" />
     <Compile Include="Services\PackageTypeService.cs" />
+    <Compile Include="Services\IApplicationTypeService.cs" />
+    <Compile Include="Services\ApplicationTypeService.cs" />
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Services\ApplicationPackageInput.cs" />

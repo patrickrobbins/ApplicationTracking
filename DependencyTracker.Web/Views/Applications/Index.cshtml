@@ -118,6 +118,12 @@
                             "All", new { @class = "form-select" })
                     </div>
                     <div class="col-md-3">
+                        <label class="form-label small text-muted">Application Type</label>
+                        @Html.DropDownListFor(m => m.ApplicationTypeId,
+                            Model.ApplicationTypes,
+                            "All", new { @class = "form-select" })
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small text-muted">Tag</label>
                         @Html.DropDownListFor(m => m.TagId,
                             Model.Tags,
@@ -156,6 +162,7 @@ else
                         <th>Application</th>
                         <th>Category</th>
                         <th>Family</th>
+                        <th>Type</th>
                         <th>Environment</th>
                         <th>Criticality</th>
                         <th>Status</th>
@@ -175,7 +182,7 @@ else
                         if (isExpandedHeader)
                         {
                             <tr class="@(app.IsDeleted ? "table-secondary" : "table-primary fw-semibold")">
-                                <td colspan="8">
+                                <td colspan="9">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <span>
                                             @app.Name
@@ -269,6 +276,7 @@ else
                             </td>
                             <td><span class="badge @BadgeFor("cat", app.Category)">@(app.Category ?? "-")</span></td>
                             <td><span class="badge bg-light text-dark border">@(app.Family ?? "-")</span></td>
+                            <td><span class="badge bg-light text-dark border">@(app.ApplicationType ?? "-")</span></td>
                             <td><span class="badge @BadgeFor("env", app.Environment)">@app.Environment</span></td>
                             <td><span class="badge @BadgeFor("crit", app.CriticalityLevel)">@app.CriticalityLevel</span></td>
                             <td><span class="badge @BadgeFor("status", app.Status)">@app.Status</span></td>
