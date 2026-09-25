@@ -25,7 +25,7 @@ namespace DependencyTracker.Web
                         "~/Scripts/app/graph-config.js",
                         "~/Scripts/app/graph.js"));
 
-            bundles.Add(new Bundle("~/Content/css").Include(
+            bundles.Add(new Bundle("~/Content/cssBundle").Include(
                       "~/Content/css/lib/bootstrap.min.css",
                       "~/Content/css/site.css",
                       "~/Content/css/graph.css"));
