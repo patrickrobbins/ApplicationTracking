@@ -32,6 +32,22 @@ namespace DependencyTracker.Web.Models.ViewModels
         public bool CanEdit { get; set; }
     }
 
+    /// <summary>Read-only display of a single dependency, used by the view modal.</summary>
+    public class DependencyViewViewModel
+    {
+        public int DependencyId { get; set; }
+        public int SourceApplicationId { get; set; }
+        public string SourceName { get; set; }
+        public int TargetApplicationId { get; set; }
+        public string TargetName { get; set; }
+        public string DependencyType { get; set; }
+        public string Direction { get; set; }
+        public string Description { get; set; }
+        public string CriticalityLevel { get; set; }
+        public string Impact { get; set; }
+        public string Frequency { get; set; }
+    }
+
     public class DependencyFormViewModel
     {
         public int DependencyId { get; set; }

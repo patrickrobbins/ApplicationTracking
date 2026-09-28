@@ -442,7 +442,7 @@
                             <th>Level</th>
                             <th>Type</th>
                             <th>Critical</th>
-                            @if (Model.CanEdit) { <th class="text-end">Action</th> }
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -498,18 +498,26 @@
                                         <span class="text-muted">-</span>
                                     }
                                 </td>
-                                @if (Model.CanEdit)
-                                {
-                                    <td class="text-end">
-                                        @if (dep.IsDirect)
-                                        {
-                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                    onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
-                                                Remove
-                                            </button>
-                                        }
-                                    </td>
-                                }
+                                <td class="text-end">
+                                    @if (dep.DependencyId > 0)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="openDependencyView(@dep.DependencyId)">
+                                            View
+                                        </button>
+                                    }
+                                    @if (dep.IsDirect && Model.CanEdit)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2"
+                                                onclick="openDependencyEdit(@dep.DependencyId)">
+                                            Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
+                                                onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                            Remove
+                                        </button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -545,7 +553,7 @@
                             <th>Level</th>
                             <th>Type</th>
                             <th>Critical</th>
-                            @if (Model.CanEdit) { <th class="text-end">Action</th> }
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -601,18 +609,26 @@
                                         <span class="text-muted">-</span>
                                     }
                                 </td>
-                                @if (Model.CanEdit)
-                                {
-                                    <td class="text-end">
-                                        @if (dep.IsDirect)
-                                        {
-                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                    onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
-                                                Remove
-                                            </button>
-                                        }
-                                    </td>
-                                }
+                                <td class="text-end">
+                                    @if (dep.DependencyId > 0)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="openDependencyView(@dep.DependencyId)">
+                                            View
+                                        </button>
+                                    }
+                                    @if (dep.IsDirect && Model.CanEdit)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2"
+                                                onclick="openDependencyEdit(@dep.DependencyId)">
+                                            Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
+                                                onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                            Remove
+                                        </button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -631,10 +647,34 @@
 
 @Html.AntiForgeryToken()
 
+<div id="depViewModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="depViewModalContent"></div>
+    </div>
+</div>
+
+<div id="depEditModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="depEditModalContent"></div>
+    </div>
+</div>
+
 @section scripts {
     @Scripts.Render("~/bundles/cytoscape")
     @Scripts.Render("~/bundles/graph")
     <script>
+        function openDependencyView(dependencyId) {
+            $('#depViewModalContent').load('@Url.Action("ViewModal", "Dependencies")/' + dependencyId, function () {
+                new bootstrap.Modal(document.getElementById('depViewModal')).show();
+            });
+        }
+
+        function openDependencyEdit(dependencyId) {
+            $('#depEditModalContent').load('@Url.Action("EditModal", "Dependencies")/' + dependencyId, function () {
+                new bootstrap.Modal(document.getElementById('depEditModal')).show();
+            });
+        }
+
         function confirmDeleteDependency(dependencyId, appId, appName) {
             if (!confirm('Remove dependency on "' + appName + '"? This cannot be undone.')) return;
             $.ajax({

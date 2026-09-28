@@ -207,6 +207,112 @@ namespace DependencyTracker.Web.Controllers
             return View(model);
         }
 
+        // GET: /Dependencies/EditModal/5 (partial rendered into the details-page modal)
+        [AdAuthorize(Roles = "Maintenance,Admin")]
+        public ActionResult EditModal(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var dependency = _dependencyService.GetById(id.Value);
+            if (dependency == null)
+                return HttpNotFound();
+
+            var model = new DependencyFormViewModel
+            {
+                DependencyId = dependency.DependencyId,
+                SourceApplicationId = dependency.SourceApplicationId,
+                TargetApplicationId = dependency.TargetApplicationId,
+                DependencyType = dependency.DependencyType,
+                Direction = dependency.Direction,
+                Description = dependency.Description,
+                CriticalityLevel = dependency.CriticalityLevel,
+                Impact = dependency.Impact,
+                Frequency = dependency.Frequency,
+                ApplicationOptions = BuildApplicationOptions(),
+                TypeOptions = DependencyViewModelFactory.TypeOptions(dependency.DependencyType),
+                DirectionOptions = DependencyViewModelFactory.DirectionOptions(dependency.Direction),
+                FrequencyOptions = DependencyViewModelFactory.FrequencyOptions(dependency.Frequency),
+                CriticalityOptions = DependencyViewModelFactory.CriticalityOptions(dependency.CriticalityLevel)
+            };
+            return PartialView("_DependencyEditModal", model);
+        }
+
+        // POST: /Dependencies/EditModal (AJAX save from the details-page modal)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AdAuthorize(Roles = "Maintenance,Admin")]
+        public ActionResult EditModal(DependencyFormViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var dependency = new Dependency
+                    {
+                        DependencyId = model.DependencyId,
+                        SourceApplicationId = model.SourceApplicationId,
+                        TargetApplicationId = model.TargetApplicationId,
+                        DependencyType = model.DependencyType,
+                        Direction = model.Direction,
+                        Description = model.Description,
+                        CriticalityLevel = string.IsNullOrEmpty(model.CriticalityLevel) ? "Low" : model.CriticalityLevel,
+                        Impact = model.Impact,
+                        Frequency = model.Frequency
+                    };
+
+                    _dependencyService.Update(dependency, _roleProvider.CurrentUserFullName);
+                    TempData["SuccessMessage"] = "Dependency updated successfully.";
+                    return Json(new
+                    {
+                        success = true,
+                        redirect = Url.Action("Details", "Applications", new { id = dependency.SourceApplicationId })
+                    });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            model.ApplicationOptions = BuildApplicationOptions();
+            model.TypeOptions = DependencyViewModelFactory.TypeOptions(model.DependencyType);
+            model.DirectionOptions = DependencyViewModelFactory.DirectionOptions(model.Direction);
+            model.FrequencyOptions = DependencyViewModelFactory.FrequencyOptions(model.Frequency);
+            model.CriticalityOptions = DependencyViewModelFactory.CriticalityOptions(model.CriticalityLevel);
+            return Json(new { success = false, formHtml = RenderPartialToString("_DependencyEditModal", model) });
+        }
+
+        // GET: /Dependencies/ViewModal/5 (read-only partial rendered into the details-page modal)
+        public ActionResult ViewModal(int? id)
+        {
+            if (!id.HasValue)
+                return HttpNotFound();
+
+            var dependency = _dependencyService.GetById(id.Value);
+            if (dependency == null)
+                return HttpNotFound();
+
+            var source = dependency.SourceApplicationId == 0 ? null : _applicationService.GetById(dependency.SourceApplicationId);
+            var target = dependency.TargetApplicationId == 0 ? null : _applicationService.GetById(dependency.TargetApplicationId);
+
+            var model = new DependencyViewViewModel
+            {
+                DependencyId = dependency.DependencyId,
+                SourceApplicationId = dependency.SourceApplicationId,
+                SourceName = source != null ? ApplicationDisplayName(source) : dependency.SourceApplicationId.ToString(),
+                TargetApplicationId = dependency.TargetApplicationId,
+                TargetName = target != null ? ApplicationDisplayName(target) : dependency.TargetApplicationId.ToString(),
+                DependencyType = dependency.DependencyType,
+                Direction = dependency.Direction,
+                Description = dependency.Description,
+                CriticalityLevel = dependency.CriticalityLevel,
+                Impact = dependency.Impact,
+                Frequency = dependency.Frequency
+            };
+            return PartialView("_DependencyViewModal", model);
+        }
+
         // POST: /Dependencies/TargetDefaults
         [HttpPost]
         [AdAuthorize(Roles = "Maintenance,Admin")]
@@ -253,6 +359,18 @@ namespace DependencyTracker.Web.Controllers
             if (string.IsNullOrEmpty(application.Version))
                 return application.Name;
             return application.Name + " " + application.Version;
+        }
+
+        private string RenderPartialToString(string viewName, object model)
+        {
+            ViewData.Model = model;
+            using (var writer = new System.IO.StringWriter())
+            {
+                var viewResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName);
+                var viewContext = new ViewContext(ControllerContext, viewResult.View, ViewData, TempData, writer);
+                viewResult.View.Render(viewContext, writer);
+                return writer.GetStringBuilder().ToString();
+            }
         }
 
         private bool IsEditor()

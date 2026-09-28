@@ -1,0 +1,45 @@
+@model DependencyTracker.Web.Models.ViewModels.DependencyViewViewModel
+@{
+    Layout = null;
+}
+
+<div class="modal-header">
+    <h5 class="modal-title">Dependency Details</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <dl class="row mb-0">
+        <dt class="col-sm-4">Source Application</dt>
+        <dd class="col-sm-8">
+            <a href="@Url.Action("Details", "Applications", new { id = Model.SourceApplicationId })">@Model.SourceName</a>
+        </dd>
+        <dt class="col-sm-4">Target Application</dt>
+        <dd class="col-sm-8">
+            <a href="@Url.Action("Details", "Applications", new { id = Model.TargetApplicationId })">@Model.TargetName</a>
+        </dd>
+        <dt class="col-sm-4">Dependency Type</dt>
+        <dd class="col-sm-8">@Model.DependencyType</dd>
+        <dt class="col-sm-4">Direction</dt>
+        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Direction) ? "-" : Model.Direction)</dd>
+        @if (!string.IsNullOrEmpty(Model.CriticalityLevel))
+        {
+            <dt class="col-sm-4">Criticality</dt>
+            <dd class="col-sm-8">@Model.CriticalityLevel</dd>
+        }
+        <dt class="col-sm-4">Frequency</dt>
+        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Frequency) ? "-" : Model.Frequency)</dd>
+        @if (!string.IsNullOrEmpty(Model.Impact))
+        {
+            <dt class="col-sm-4">Impact</dt>
+            <dd class="col-sm-8"><span style="white-space: pre-line">@Model.Impact</span></dd>
+        }
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <dt class="col-sm-4">Description</dt>
+            <dd class="col-sm-8"><span style="white-space: pre-line">@Model.Description</span></dd>
+        }
+    </dl>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+</div>

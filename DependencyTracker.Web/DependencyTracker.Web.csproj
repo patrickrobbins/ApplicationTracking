@@ -219,6 +219,8 @@
     <Content Include="Views\Dependencies\Index.cshtml" />
     <Content Include="Views\Dependencies\Create.cshtml" />
     <Content Include="Views\Dependencies\Edit.cshtml" />
+    <Content Include="Views\Dependencies\_DependencyEditModal.cshtml" />
+    <Content Include="Views\Dependencies\_DependencyViewModal.cshtml" />
     <Content Include="Views\Scanner\Index.cshtml" />
     <Content Include="Views\Discovery\Index.cshtml" />
     <Content Include="Views\Discovery\DependencyReview.cshtml" />
