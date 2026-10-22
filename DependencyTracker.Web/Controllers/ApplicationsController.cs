@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
 using DependencyTracker.Data.Utilities;
+using DependencyTracker.Web.Logging;
 using DependencyTracker.Web.Models;
 using DependencyTracker.Web.Models.ViewModels;
 
@@ -256,7 +258,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Applications/ScanDlls/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult ScanDlls(int id)
         {
@@ -303,7 +305,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Applications/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Create(ApplicationFormViewModel model)
         {
@@ -446,7 +448,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Applications/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Edit(ApplicationFormViewModel model)
         {
@@ -544,7 +546,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Applications/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Delete(int? id, bool permanent)
         {
@@ -577,7 +579,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Applications/Restore/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Restore(int id)
         {
@@ -593,6 +595,9 @@ namespace DependencyTracker.Web.Controllers
         [HttpPost]
         public JsonResult ValidateName(string name, int applicationId = 0, string version = null)
         {
+            if (!HasValidCsrfToken())
+                return Json("The request could not be validated. Please reload the page and try again.");
+
             var normalizedVersion = string.IsNullOrWhiteSpace(version) ? null : version.Trim();
             var existing = _applicationService.GetAllIncludingDeleted().FirstOrDefault(a =>
                 string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase)
@@ -601,6 +606,35 @@ namespace DependencyTracker.Web.Controllers
                 return Json("An application with this name and version already exists.");
 
             return Json(true);
+        }
+
+        /// <summary>
+        /// Validates the anti-forgery token for requests that cannot post a
+        /// form (the jQuery Validate remote rule sends it in a header).
+        /// </summary>
+        private bool HasValidCsrfToken()
+        {
+            var headerToken = Request.Headers["X-CSRF-Token"];
+            if (string.IsNullOrWhiteSpace(headerToken))
+                return false;
+
+            try
+            {
+                var cookie = Request.Cookies[AntiForgeryConfig.CookieName];
+                if (cookie == null || string.IsNullOrEmpty(cookie.Value))
+                    return false;
+
+                AntiForgery.Validate(cookie.Value, headerToken);
+                return true;
+            }
+            catch (HttpAntiForgeryException)
+            {
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private bool IsEditor()
@@ -805,7 +839,7 @@ namespace DependencyTracker.Web.Controllers
                 }
             }
 
-            return ex.Message;
+            return UserFacingError.From(ex, "Application save");
         }
 
         /// <summary>

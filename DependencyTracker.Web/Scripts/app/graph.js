@@ -287,8 +287,8 @@ window.DTCy = window.DTCy || {};
             }
             $container.append(
                 '<label class="filter-check">' +
-                '<input type="checkbox" data-value="' + value + '" ' + (selection[value] ? 'checked' : '') + ' /> ' +
-                '<span>' + value + '</span>' +
+                '<input type="checkbox" data-value="' + escapeHtml(value) + '" ' + (selection[value] ? 'checked' : '') + ' /> ' +
+                '<span>' + escapeHtml(value) + '</span>' +
                 '</label>'
             );
         });
@@ -593,9 +593,9 @@ window.DTCy = window.DTCy || {};
         var $panel = $('#node-panel');
         if (!$panel.length) return;
 
-        var criticalityBadge = '<span class="badge ' + critBadgeClass(data.criticality) + '">' + (data.criticality || '-') + '</span>';
-        var envBadge = '<span class="badge ' + envBadgeClass(data.environment) + '">' + (data.environment || '-') + '</span>';
-        var statusBadge = '<span class="badge ' + statusBadgeClass(data.status) + '">' + (data.status || '-') + '</span>';
+        var criticalityBadge = '<span class="badge ' + critBadgeClass(data.criticality) + '">' + escapeHtml(data.criticality || '-') + '</span>';
+        var envBadge = '<span class="badge ' + envBadgeClass(data.environment) + '">' + escapeHtml(data.environment || '-') + '</span>';
+        var statusBadge = '<span class="badge ' + statusBadgeClass(data.status) + '">' + escapeHtml(data.status || '-') + '</span>';
 
         $('#node-panel-title').text(data.name);
         $('#node-panel-body').html(
@@ -620,14 +620,14 @@ window.DTCy = window.DTCy || {};
 
         $('#node-panel-title').text('Dependency');
         $('#node-panel-body').html(
-            '<div class="mb-1"><strong>Type:</strong> <span class="badge bg-light text-dark border">' + (data.type || '-') + '</span></div>' +
+            '<div class="mb-1"><strong>Type:</strong> <span class="badge bg-light text-dark border">' + escapeHtml(data.type || '-') + '</span></div>' +
             '<div class="mb-1"><strong>Criticality:</strong> ' + (data.criticality
-                ? '<span class="badge ' + critBadgeClass(data.criticality) + '">' + data.criticality + '</span>'
+                ? '<span class="badge ' + critBadgeClass(data.criticality) + '">' + escapeHtml(data.criticality) + '</span>'
                 : '-') + '</div>' +
-            '<div class="mb-1"><strong>Impact:</strong> ' + (data.impact || '-') + '</div>' +
-            '<div class="mb-1"><strong>Frequency:</strong> ' + (data.frequency || '-') + '</div>' +
-            '<div class="mb-1"><strong>Direction:</strong> ' + (data.direction || '-') + '</div>' +
-            '<div class="mb-1"><strong>Level:</strong> L' + data.level + '</div>'
+            '<div class="mb-1"><strong>Impact:</strong> ' + escapeHtml(data.impact || '-') + '</div>' +
+            '<div class="mb-1"><strong>Frequency:</strong> ' + escapeHtml(data.frequency || '-') + '</div>' +
+            '<div class="mb-1"><strong>Direction:</strong> ' + escapeHtml(data.direction || '-') + '</div>' +
+            '<div class="mb-1"><strong>Level:</strong> L' + escapeHtml(data.level) + '</div>'
         );
         $panel.removeClass('d-none');
     }
@@ -673,6 +673,20 @@ window.DTCy = window.DTCy || {};
             case 'retired': return 'bg-dark';
             default: return 'bg-secondary';
         }
+    }
+
+    // Escapes text before it is concatenated into an HTML fragment so values
+    // coming from the database can never inject markup into the panels.
+    function escapeHtml(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function showLoading(visible) {

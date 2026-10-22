@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Mvc;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
+using DependencyTracker.Web.Logging;
 using DependencyTracker.Web.Models;
 using DependencyTracker.Web.Models.ViewModels;
 
@@ -55,7 +56,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Discovery
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult Index(DiscoveryIndexViewModel model)
         {
             if (!ModelState.IsValid)
@@ -80,7 +81,7 @@ namespace DependencyTracker.Web.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Discovery failed: " + ex.Message);
+                ModelState.AddModelError("", "Discovery failed: " + UserFacingError.From(ex, "Discovery scan"));
                 return View(model);
             }
         }
@@ -113,7 +114,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Discovery/ReviewDependencies
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult ReviewDependencies(DiscoveryIndexViewModel model)
         {
             if (model.Apps == null || model.Apps.Count == 0)
@@ -158,7 +159,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Discovery/Apply
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult Apply(DiscoveryReviewViewModel model)
         {
             var user = _roleProvider.CurrentUserFullName;
@@ -199,7 +200,7 @@ namespace DependencyTracker.Web.Controllers
                             }
                             catch (Exception ex)
                             {
-                                errors.Add("'" + app.Name + "': " + ex.Message);
+                                errors.Add("'" + app.Name + "': " + UserFacingError.From(ex, "Discovery import of '" + app.Name + "'"));
                             }
                             sourceId = existing.ApplicationId;
                         }
@@ -410,7 +411,7 @@ namespace DependencyTracker.Web.Controllers
             }
             catch (Exception ex)
             {
-                errors.Add("'" + app.Name + "': " + ex.Message);
+                errors.Add("'" + app.Name + "': " + UserFacingError.From(ex, "Discovery create of '" + app.Name + "'"));
                 return 0;
             }
         }

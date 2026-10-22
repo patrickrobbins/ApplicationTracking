@@ -153,7 +153,10 @@
     <Compile Include="Controllers\GraphController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs" />
+    <Compile Include="AntiForgeryTokenAttribute.cs" />
+    <Compile Include="LoggingHandleErrorAttribute.cs" />
     <Compile Include="Logging\AppLogger.cs" />
+    <Compile Include="Logging\UserFacingError.cs" />
     <Compile Include="Models\ActiveDirectoryRoleProvider.cs" />
     <Compile Include="Models\AdRoleManager.cs" />
     <Compile Include="Models\DevelopmentRoleProvider.cs" />

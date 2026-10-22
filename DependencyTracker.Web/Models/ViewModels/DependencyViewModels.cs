@@ -53,14 +53,18 @@ namespace DependencyTracker.Web.Models.ViewModels
         public int DependencyId { get; set; }
 
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a source application.")]
         public int SourceApplicationId { get; set; }
 
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a target application.")]
         public int TargetApplicationId { get; set; }
 
         [Required]
+        [StringLength(50)]
         public string DependencyType { get; set; }
 
+        [StringLength(20)]
         public string Direction { get; set; }
 
         [StringLength(500)]
@@ -74,6 +78,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         [DataType(DataType.MultilineText)]
         public string Impact { get; set; }
 
+        [StringLength(50)]
         public string Frequency { get; set; }
 
         public IEnumerable<SelectListItem> ApplicationOptions { get; set; }

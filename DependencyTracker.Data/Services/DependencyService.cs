@@ -68,11 +68,7 @@ namespace DependencyTracker.Data.Services
 
         public Dependency Create(Dependency dependency, string user)
         {
-            if (dependency.SourceApplicationId == dependency.TargetApplicationId)
-                throw new InvalidOperationException("An application cannot depend on itself.");
-
-            if (RelationshipExists(dependency.SourceApplicationId, dependency.TargetApplicationId, dependency.DependencyType))
-                throw new InvalidOperationException("This dependency relationship already exists.");
+            ValidateRelationship(dependency, 0);
 
             dependency.CreatedDate = DateTime.UtcNow;
             dependency.ModifiedDate = DateTime.UtcNow;
@@ -98,6 +94,8 @@ namespace DependencyTracker.Data.Services
             var existing = _dependencyRepository.GetById(dependency.DependencyId);
             if (existing == null)
                 throw new InvalidOperationException($"Dependency {dependency.DependencyId} not found.");
+
+            ValidateRelationship(dependency, dependency.DependencyId);
 
             existing.SourceApplicationId = dependency.SourceApplicationId;
             existing.TargetApplicationId = dependency.TargetApplicationId;
@@ -141,6 +139,39 @@ namespace DependencyTracker.Data.Services
         public bool RelationshipExists(int sourceId, int targetId, string dependencyType)
         {
             return _dependencyRepository.RelationshipExists(sourceId, targetId, dependencyType);
+        }
+
+        /// <summary>
+        /// Shared guard for create and update: an application cannot depend on
+        /// itself and the same source/target/type relationship cannot be
+        /// stored twice.
+        /// </summary>
+        private void ValidateRelationship(Dependency dependency, int excludeDependencyId)
+        {
+            if (dependency.SourceApplicationId == dependency.TargetApplicationId)
+                throw new InvalidOperationException("An application cannot depend on itself.");
+
+            if (excludeDependencyId > 0)
+            {
+                if (_dependencyRepository.RelationshipExistsExcluding(
+                        dependency.SourceApplicationId,
+                        dependency.TargetApplicationId,
+                        dependency.DependencyType,
+                        excludeDependencyId))
+                {
+                    throw new InvalidOperationException("This dependency relationship already exists.");
+                }
+
+                return;
+            }
+
+            if (_dependencyRepository.RelationshipExists(
+                    dependency.SourceApplicationId,
+                    dependency.TargetApplicationId,
+                    dependency.DependencyType))
+            {
+                throw new InvalidOperationException("This dependency relationship already exists.");
+            }
         }
 
         public IDictionary<int, int> GetCountsForApplications(IEnumerable<int> applicationIds)

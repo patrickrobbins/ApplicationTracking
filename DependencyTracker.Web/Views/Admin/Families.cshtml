@@ -63,7 +63,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove family \'@f.Name\'? Applications using it become unfamilied.');">Delete</button>
+                                        data-confirm="Remove family '@f.Name'? Applications using it become unfamilied."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

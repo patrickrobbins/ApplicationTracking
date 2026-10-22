@@ -62,7 +62,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove team \'@t.Name\'? Applications using it no longer have a technical ownership team.');">Delete</button>
+                                        data-confirm="Remove team '@t.Name'? Applications using it no longer have a technical ownership team."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

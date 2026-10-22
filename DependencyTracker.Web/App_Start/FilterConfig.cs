@@ -7,7 +7,7 @@ namespace DependencyTracker.Web
     {
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
-            filters.Add(new HandleErrorAttribute());
+            filters.Add(new LoggingHandleErrorAttribute());
             filters.Add(new AdAuthorizeAttribute());
         }
     }

@@ -19,12 +19,16 @@ namespace DependencyTracker.Web
             if (httpContext == null)
                 return false;
 
-            if (!httpContext.User.Identity.IsAuthenticated)
+            // The development role provider grants every role to every caller.
+            // It is only honoured for requests that originate from the machine
+            // hosting the application; remote requests are denied outright.
+            if (RoleProviderFactory.IsDevelopment())
             {
-                if (RoleProviderFactory.IsDevelopment())
-                    return true;
-                return false;
+                return RoleProviderFactory.IsDevelopmentRequestAllowed(httpContext);
             }
+
+            if (!httpContext.User.Identity.IsAuthenticated)
+                return false;
 
             if (string.IsNullOrWhiteSpace(Roles))
                 return true;

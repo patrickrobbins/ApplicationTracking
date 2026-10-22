@@ -13,4 +13,19 @@
             $(this).remove();
         });
     });
+
+    // Send the anti-forgery token with every jQuery AJAX request. Endpoints
+    // that cannot receive a form token (for example the remote validation
+    // used by jQuery Validate) read it back from the X-CSRF-Token header.
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!settings || settings.type === 'GET') {
+                return;
+            }
+            var token = $('input[name="__RequestVerificationToken"]').first().val();
+            if (token && !settings.headers['X-CSRF-Token']) {
+                settings.headers['X-CSRF-Token'] = token;
+            }
+        }
+    });
 })();

@@ -65,7 +65,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove definition \'@d.Key\'? Its stored values will also be removed.');">Delete</button>
+                                        data-confirm="Remove definition '@d.Key'? Its stored values will also be removed."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

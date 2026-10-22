@@ -513,7 +513,10 @@
                                             Edit
                                         </button>
                                         <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
-                                                onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                                data-dependency-id="@dep.DependencyId"
+                                                data-application-id="@Model.Application.ApplicationId"
+                                                data-application-name="@dep.Name"
+                                                onclick="confirmDeleteDependency(this)">
                                             Remove
                                         </button>
                                     }
@@ -624,7 +627,10 @@
                                             Edit
                                         </button>
                                         <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
-                                                onclick="confirmDeleteDependency(@dep.DependencyId, @Model.Application.ApplicationId, '@dep.Name')">
+                                                data-dependency-id="@dep.DependencyId"
+                                                data-application-id="@Model.Application.ApplicationId"
+                                                data-application-name="@dep.Name"
+                                                onclick="confirmDeleteDependency(this)">
                                             Remove
                                         </button>
                                     }
@@ -675,7 +681,11 @@
             });
         }
 
-        function confirmDeleteDependency(dependencyId, appId, appName) {
+        function confirmDeleteDependency(button) {
+            var $button = $(button);
+            var dependencyId = $button.data('dependency-id');
+            var appId = $button.data('application-id');
+            var appName = $button.data('application-name');
             if (!confirm('Remove dependency on "' + appName + '"? This cannot be undone.')) return;
             $.ajax({
                 url: '@Url.Action("Delete", "Dependencies")',

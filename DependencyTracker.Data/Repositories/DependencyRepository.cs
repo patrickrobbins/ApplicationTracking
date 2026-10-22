@@ -88,6 +88,15 @@ namespace DependencyTracker.Data.Repositories
                 d.DependencyType == dependencyType);
         }
 
+        public bool RelationshipExistsExcluding(int sourceId, int targetId, string dependencyType, int excludeDependencyId)
+        {
+            return DbSet.Any(d =>
+                d.DependencyId != excludeDependencyId &&
+                d.SourceApplicationId == sourceId &&
+                d.TargetApplicationId == targetId &&
+                d.DependencyType == dependencyType);
+        }
+
         public int CountForApplication(int applicationId)
         {
             return DbSet.Count(d => d.SourceApplicationId == applicationId || d.TargetApplicationId == applicationId);

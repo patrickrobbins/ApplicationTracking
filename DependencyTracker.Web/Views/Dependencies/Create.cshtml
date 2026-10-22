@@ -91,7 +91,10 @@
             $('#TargetApplicationId').change(function () {
                 var targetId = $(this).val();
                 if (!targetId) return;
-                $.post('@Url.Action("TargetDefaults", "Dependencies")', { id: targetId }, function (data) {
+                $.post('@Url.Action("TargetDefaults", "Dependencies")', {
+                    id: targetId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                }, function (data) {
                     if (!data || !data.success) return;
                     $('#CriticalityLevel').val(data.criticality || 'Low');
                     $('#Impact').val(data.impact || '');

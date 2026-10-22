@@ -62,7 +62,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove tag \'@t.Name\'? Applications no longer carry the tag.');">Delete</button>
+                                        data-confirm="Remove tag '@t.Name'? Applications no longer carry the tag."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

@@ -62,7 +62,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove category \'@c.Name\'? Applications using it become uncategorized.');">Delete</button>
+                                        data-confirm="Remove category '@c.Name'? Applications using it become uncategorized."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

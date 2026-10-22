@@ -145,10 +145,13 @@ namespace DependencyTracker.Web.Models.ViewModels
         [EmailAddress(ErrorMessage = "Technical owner email is not a valid email address.")]
         public string TechnicalOwnerEmail { get; set; }
 
+        [StringLength(50)]
         public string Environment { get; set; }
 
+        [StringLength(20)]
         public string CriticalityLevel { get; set; }
 
+        [StringLength(20)]
         [Display(Name = "Default dependency criticality")]
         public string DefaultDependencyCriticality { get; set; }
 
@@ -157,6 +160,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         [Display(Name = "Default dependency impact")]
         public string DefaultDependencyImpact { get; set; }
 
+        [StringLength(20)]
         public string Status { get; set; }
 
         public int? CategoryId { get; set; }
@@ -238,6 +242,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         /// tag pool (reused by name, case-insensitively) when the application saves.
         /// </summary>
         [Display(Name = "New tags")]
+        [StringLength(2000)]
         public string NewTagNames { get; set; }
 
         public IList<ApplicationPropertyViewModel> Properties { get; set; }
@@ -257,7 +262,11 @@ namespace DependencyTracker.Web.Models.ViewModels
     public class ApplicationPackageRowViewModel
     {
         public int PackageTypeId { get; set; }
+
+        [StringLength(200)]
         public string Name { get; set; }
+
+        [StringLength(100)]
         public string Version { get; set; }
     }
 
@@ -354,7 +363,10 @@ namespace DependencyTracker.Web.Models.ViewModels
         public string Key { get; set; }
         public string Label { get; set; }
         public string DataType { get; set; }
+
+        [StringLength(2000)]
         public string Value { get; set; }
+
         public string ScanPattern { get; set; }
     }
 

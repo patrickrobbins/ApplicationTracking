@@ -64,7 +64,8 @@
                             {
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Remove application type \'@t.Name\'? Affected applications are left untyped.');">Delete</button>
+                                        data-confirm="Remove application type '@t.Name'? Affected applications are left untyped."
+                                        onclick="return confirm(this.getAttribute('data-confirm'));">Delete</button>
                             }
                         </td>
                     </tr>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
+using DependencyTracker.Web.Logging;
 using DependencyTracker.Web.Models;
 using DependencyTracker.Web.Models.ViewModels;
 
@@ -97,7 +98,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Dependencies/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Create(DependencyFormViewModel model)
         {
@@ -123,7 +124,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Dependencies/Create"));
                 }
             }
 
@@ -168,7 +169,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Dependencies/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Edit(DependencyFormViewModel model)
         {
@@ -195,7 +196,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Dependencies/Edit"));
                 }
             }
 
@@ -240,7 +241,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Dependencies/EditModal (AJAX save from the details-page modal)
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult EditModal(DependencyFormViewModel model)
         {
@@ -271,7 +272,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Dependencies/EditModal"));
                 }
             }
 
@@ -315,6 +316,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Dependencies/TargetDefaults
         [HttpPost]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public JsonResult TargetDefaults(int id)
         {
@@ -332,7 +334,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Dependencies/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         [AdAuthorize(Roles = "Maintenance,Admin")]
         public ActionResult Delete(int? id, int? returnApplicationId)
         {

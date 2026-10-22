@@ -3,6 +3,7 @@ using System.Linq;
 using System.Web.Mvc;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
+using DependencyTracker.Web.Logging;
 using DependencyTracker.Web.Models;
 using DependencyTracker.Web.Models.ViewModels;
 
@@ -76,7 +77,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/AdGroup/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult AdGroupCreate(AdGroupViewModel model)
         {
             if (ModelState.IsValid)
@@ -96,7 +97,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/AdGroupCreate"));
                 }
             }
 
@@ -128,7 +129,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/AdGroup/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult AdGroupEdit(AdGroupViewModel model)
         {
             if (ModelState.IsValid)
@@ -149,7 +150,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/AdGroupEdit"));
                 }
             }
 
@@ -159,7 +160,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/AdGroup/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult AdGroupToggle(int? id)
         {
             if (!id.HasValue)
@@ -171,7 +172,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/AdGroup/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult AdGroupDelete(int? id)
         {
             if (!id.HasValue)
@@ -221,7 +222,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PropertyDefinition/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PropertyDefinitionCreate(PropertyDefinitionViewModel model)
         {
             if (ModelState.IsValid)
@@ -244,7 +245,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/PropertyDefinitionCreate"));
                 }
             }
 
@@ -279,7 +280,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PropertyDefinition/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PropertyDefinitionEdit(PropertyDefinitionViewModel model)
         {
             if (ModelState.IsValid)
@@ -303,7 +304,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/PropertyDefinitionEdit"));
                 }
             }
 
@@ -313,7 +314,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PropertyDefinition/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PropertyDefinitionToggle(int? id)
         {
             if (!id.HasValue)
@@ -325,7 +326,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PropertyDefinition/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PropertyDefinitionDelete(int? id)
         {
             if (!id.HasValue)
@@ -351,7 +352,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Category/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult CategoryCreate(CategoryViewModel model)
         {
             if (ModelState.IsValid)
@@ -371,7 +372,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/CategoryCreate"));
                 }
             }
 
@@ -401,7 +402,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Category/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult CategoryEdit(CategoryViewModel model)
         {
             if (ModelState.IsValid)
@@ -422,7 +423,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/CategoryEdit"));
                 }
             }
 
@@ -431,7 +432,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Category/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult CategoryToggle(int? id)
         {
             if (!id.HasValue)
@@ -443,7 +444,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Category/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult CategoryDelete(int? id)
         {
             if (!id.HasValue)
@@ -469,7 +470,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Technology/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TechnologyCreate(TechnologyViewModel model)
         {
             if (ModelState.IsValid)
@@ -489,7 +490,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TechnologyCreate"));
                 }
             }
 
@@ -519,7 +520,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Technology/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TechnologyEdit(TechnologyViewModel model)
         {
             if (ModelState.IsValid)
@@ -540,7 +541,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TechnologyEdit"));
                 }
             }
 
@@ -549,7 +550,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Technology/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TechnologyToggle(int? id)
         {
             if (!id.HasValue)
@@ -561,7 +562,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Technology/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TechnologyDelete(int? id)
         {
             if (!id.HasValue)
@@ -587,7 +588,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Family/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult FamilyCreate(FamilyViewModel model)
         {
             if (ModelState.IsValid)
@@ -607,7 +608,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/FamilyCreate"));
                 }
             }
 
@@ -637,7 +638,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Family/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult FamilyEdit(FamilyViewModel model)
         {
             if (ModelState.IsValid)
@@ -658,7 +659,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/FamilyEdit"));
                 }
             }
 
@@ -667,7 +668,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Family/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult FamilyToggle(int? id)
         {
             if (!id.HasValue)
@@ -679,7 +680,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Family/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult FamilyDelete(int? id)
         {
             if (!id.HasValue)
@@ -705,7 +706,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Team/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TeamCreate(TeamViewModel model)
         {
             if (ModelState.IsValid)
@@ -725,7 +726,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TeamCreate"));
                 }
             }
 
@@ -755,7 +756,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Team/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TeamEdit(TeamViewModel model)
         {
             if (ModelState.IsValid)
@@ -776,7 +777,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TeamEdit"));
                 }
             }
 
@@ -785,7 +786,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Team/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TeamToggle(int? id)
         {
             if (!id.HasValue)
@@ -797,7 +798,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Team/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TeamDelete(int? id)
         {
             if (!id.HasValue)
@@ -823,7 +824,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Tag/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TagCreate(TagViewModel model)
         {
             if (ModelState.IsValid)
@@ -843,7 +844,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TagCreate"));
                 }
             }
 
@@ -873,7 +874,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Tag/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TagEdit(TagViewModel model)
         {
             if (ModelState.IsValid)
@@ -894,7 +895,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/TagEdit"));
                 }
             }
 
@@ -903,7 +904,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Tag/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TagToggle(int? id)
         {
             if (!id.HasValue)
@@ -915,7 +916,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/Tag/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult TagDelete(int? id)
         {
             if (!id.HasValue)
@@ -941,7 +942,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PackageType/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PackageTypeCreate(PackageTypeViewModel model)
         {
             if (ModelState.IsValid)
@@ -961,7 +962,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/PackageTypeCreate"));
                 }
             }
 
@@ -991,7 +992,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PackageType/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PackageTypeEdit(PackageTypeViewModel model)
         {
             if (ModelState.IsValid)
@@ -1012,7 +1013,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/PackageTypeEdit"));
                 }
             }
 
@@ -1021,7 +1022,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PackageType/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PackageTypeToggle(int? id)
         {
             if (!id.HasValue)
@@ -1033,7 +1034,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/PackageType/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult PackageTypeDelete(int? id)
         {
             if (!id.HasValue)
@@ -1059,7 +1060,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/ApplicationType/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult ApplicationTypeCreate(ApplicationTypeViewModel model)
         {
             if (ModelState.IsValid)
@@ -1079,7 +1080,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/ApplicationTypeCreate"));
                 }
             }
 
@@ -1109,7 +1110,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/ApplicationType/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult ApplicationTypeEdit(ApplicationTypeViewModel model)
         {
             if (ModelState.IsValid)
@@ -1130,7 +1131,7 @@ namespace DependencyTracker.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError("", UserFacingError.From(ex, "Admin/ApplicationTypeEdit"));
                 }
             }
 
@@ -1139,7 +1140,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/ApplicationType/Toggle/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult ApplicationTypeToggle(int? id)
         {
             if (!id.HasValue)
@@ -1151,7 +1152,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Admin/ApplicationType/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult ApplicationTypeDelete(int? id)
         {
             if (!id.HasValue)

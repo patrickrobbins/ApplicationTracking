@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using System.Xml;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
+using DependencyTracker.Web.Logging;
 using DependencyTracker.Web.Models;
 using DependencyTracker.Web.Models.ViewModels;
 
@@ -41,7 +42,7 @@ namespace DependencyTracker.Web.Controllers
 
         // POST: /Scanner
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult Index(ConfigScannerViewModel model)
         {
             if (!ModelState.IsValid)
@@ -78,14 +79,15 @@ namespace DependencyTracker.Web.Controllers
             }
             catch (XmlException ex)
             {
-                ModelState.AddModelError("ConfigXml", "The pasted configuration is not valid XML: " + ex.Message);
+                AppLogger.LogError(ex, "Configuration scan");
+                ModelState.AddModelError("ConfigXml", "The pasted configuration is not valid XML.");
                 return View(PopulateOptions(model));
             }
         }
 
         // POST: /Scanner/Apply
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AntiForgeryToken]
         public ActionResult Apply(ConfigScannerViewModel model)
         {
             var user = _roleProvider.CurrentUserFullName;

@@ -2,6 +2,10 @@
 
 @{
     ViewBag.Title = "Error";
+    var isLocal = HttpContext.Current != null && HttpContext.Current.Request != null && HttpContext.Current.Request.IsLocal;
+    var requestId = HttpContext.Current != null && HttpContext.Current.Items["ErrorRequestId"] != null
+        ? HttpContext.Current.Items["ErrorRequestId"].ToString()
+        : null;
 }
 
 <div class="row justify-content-center mt-5">
@@ -10,9 +14,16 @@
             <div class="card-body text-center py-5">
                 <h1 class="display-4 text-danger">Oops!</h1>
                 <p class="lead">An unexpected error occurred while processing your request.</p>
-                @if (Model != null && Model.Exception != null)
+                @if (isLocal && Model != null && Model.Exception != null)
                 {
                     <p class="text-muted small">@Model.Exception.Message</p>
+                    <pre class="text-start small text-muted" style="max-height: 35vh; overflow: auto;">@Model.Exception.StackTrace</pre>
+                }
+                else
+                {
+                    <p class="text-muted small">
+                        The details were written to the application error log@(string.IsNullOrEmpty(requestId) ? "." : " (reference " + requestId + ").")
+                    </p>
                 }
                 <a href="@Url.Action("Index", "Home")" class="btn btn-primary mt-3">Return to Dashboard</a>
             </div>
