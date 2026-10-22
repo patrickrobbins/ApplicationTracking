@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
+using System.Web.Security;
 using DependencyTracker.Data.Models;
 using DependencyTracker.Data.Services;
 using DependencyTracker.Web.Logging;
@@ -22,6 +24,9 @@ namespace DependencyTracker.Web.Controllers
     [AdAuthorize(Roles = "Maintenance,Admin")]
     public class DiscoveryController : Controller
     {
+        private const string CredentialsSessionKey = "DiscoveryCredentials";
+        private const string CredentialSeparator = "\u001f";
+
         private readonly IAppDiscoveryService _discoveryService;
         private readonly IConfigScannerService _scannerService;
         private readonly IApplicationService _applicationService;
@@ -90,26 +95,59 @@ namespace DependencyTracker.Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(username))
             {
-                Session.Remove("DiscoveryCredentials");
+                Session.Remove(CredentialsSessionKey);
                 return null;
             }
 
             var credentials = new DiscoveryCredentials { Username = username, Password = password };
-            Session["DiscoveryCredentials"] = credentials;
+            Session[CredentialsSessionKey] = ProtectCredentials(credentials);
             return credentials;
         }
 
         private DiscoveryCredentials GetStoredCredentials()
         {
-            return Session["DiscoveryCredentials"] as DiscoveryCredentials;
+            return UnprotectCredentials(Session[CredentialsSessionKey] as string);
         }
 
         private string ClearCredentials()
         {
-            var credentials = Session["DiscoveryCredentials"] as DiscoveryCredentials;
+            var credentials = GetStoredCredentials();
             var username = credentials == null ? null : credentials.Username;
-            Session.Remove("DiscoveryCredentials");
+            Session.Remove(CredentialsSessionKey);
             return username;
+        }
+
+        /// <summary>
+        /// Encrypts the credentials before they are kept in the session so a password is
+        /// never stored in plain text (the session may be serialized to disk).
+        /// </summary>
+        private static string ProtectCredentials(DiscoveryCredentials credentials)
+        {
+            var payload = string.Join(
+                CredentialSeparator,
+                new[] { credentials.Username ?? string.Empty, credentials.Password ?? string.Empty });
+
+            return Convert.ToBase64String(MachineKey.Protect(Encoding.UTF8.GetBytes(payload)));
+        }
+
+        private static DiscoveryCredentials UnprotectCredentials(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            try
+            {
+                var payload = Encoding.UTF8.GetString(MachineKey.Unprotect(Convert.FromBase64String(value)));
+                var parts = payload.Split(new[] { CredentialSeparator }, StringSplitOptions.None);
+                if (parts.Length != 2)
+                    return null;
+
+                return new DiscoveryCredentials { Username = parts[0], Password = parts[1] };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         // POST: /Discovery/ReviewDependencies

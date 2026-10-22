@@ -43,6 +43,7 @@ namespace DependencyTracker.Web.Controllers
         // POST: /Scanner
         [HttpPost]
         [AntiForgeryToken]
+        [ValidateInput(false)]
         public ActionResult Index(ConfigScannerViewModel model)
         {
             if (!ModelState.IsValid)
@@ -88,6 +89,7 @@ namespace DependencyTracker.Web.Controllers
         // POST: /Scanner/Apply
         [HttpPost]
         [AntiForgeryToken]
+        [ValidateInput(false)]
         public ActionResult Apply(ConfigScannerViewModel model)
         {
             var user = _roleProvider.CurrentUserFullName;

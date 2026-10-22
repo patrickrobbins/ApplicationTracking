@@ -127,6 +127,7 @@
     <Compile Include="Services\IAppDiscoveryService.cs" />
     <Compile Include="Services\AppDiscoveryService.cs" />
     <Compile Include="Services\DiscoveryCredentials.cs" />
+    <Compile Include="Services\SafeXml.cs" />
     <Compile Include="Services\IDependencyService.cs" />
     <Compile Include="Services\DependencyService.cs" />
     <Compile Include="Services\IAdminService.cs" />

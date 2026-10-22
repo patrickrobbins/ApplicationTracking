@@ -32,6 +32,9 @@ namespace DependencyTracker.Data.Services
     /// </summary>
     public class ConfigScannerService : IConfigScannerService
     {
+        /// <summary>Upper bound for a single scan pattern match.</summary>
+        private static readonly TimeSpan ScanTimeout = TimeSpan.FromSeconds(2);
+
         private static readonly HashSet<string> KnownSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "configSections", "connectionStrings", "appSettings", "startup", "runtime", "mscorlib",
@@ -57,7 +60,9 @@ namespace DependencyTracker.Data.Services
             if (definitions.Count == 0)
                 return candidates;
 
-            var document = XDocument.Parse(configXml);
+            var document = SafeXml.Parse(configXml);
+            if (document == null)
+                return candidates;
 
             var values = (allPropertyValues ?? Enumerable.Empty<ApplicationPropertyValue>())
                 .Where(v => v != null)
@@ -73,15 +78,26 @@ namespace DependencyTracker.Data.Services
                     Regex regex;
                     try
                     {
-                        regex = new Regex(definition.ScanPattern, RegexOptions.IgnoreCase);
+                        regex = new Regex(definition.ScanPattern, RegexOptions.IgnoreCase, ScanTimeout);
                     }
                     catch (ArgumentException)
                     {
                         continue;
                     }
 
-                    var keyMatch = regex.Match(entry.Key ?? string.Empty);
-                    var valueMatch = regex.Match(entry.Value ?? string.Empty);
+                    Match keyMatch;
+                    Match valueMatch;
+                    try
+                    {
+                        keyMatch = regex.Match(entry.Key ?? string.Empty);
+                        valueMatch = regex.Match(entry.Value ?? string.Empty);
+                    }
+                    catch (RegexMatchTimeoutException)
+                    {
+                        // A pathological pattern must not stall the scan.
+                        continue;
+                    }
+
                     if (!keyMatch.Success && !valueMatch.Success)
                         continue;
 

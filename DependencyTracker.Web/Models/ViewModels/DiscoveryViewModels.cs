@@ -10,6 +10,7 @@ namespace DependencyTracker.Web.Models.ViewModels
     public class DiscoveryIndexViewModel
     {
         [Required(ErrorMessage = "Enter the base directory or UNC path to scan.")]
+        [StringLength(400, ErrorMessage = "The base path is too long.")]
         public string BasePath { get; set; }
 
         /// <summary>
@@ -17,6 +18,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         /// C:\Windows\System32\inetsrv\config\applicationHost.config). Used only to
         /// resolve IIS site names; the folder scan works without it.
         /// </summary>
+        [StringLength(400, ErrorMessage = "The applicationHost.config path is too long.")]
         public string AppHostConfigPath { get; set; }
 
         /// <summary>
@@ -24,8 +26,10 @@ namespace DependencyTracker.Web.Models.ViewModels
         /// the application's own identity cannot access. When blank, the scan runs as the
         /// application's Windows identity.
         /// </summary>
+        [StringLength(256, ErrorMessage = "The user name is too long.")]
         public string Username { get; set; }
 
+        [StringLength(256, ErrorMessage = "The password is too long.")]
         public string Password { get; set; }
 
         public bool Scanned { get; set; }

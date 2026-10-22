@@ -64,6 +64,29 @@ namespace DependencyTracker.Data.Services
 
         private static readonly string[] ConfigFileNames = { "web.config", "app.config" };
 
+        /// <summary>How deep the recursive walks go before they stop descending.</summary>
+        private const int MaxScanDepth = 24;
+
+        /// <summary>Upper bound on the number of configuration files a single scan reports.</summary>
+        private const int MaxDiscoveredConfigFiles = 5000;
+
+        /// <summary>Upper bound on the number of libraries a single walk reports.</summary>
+        private const int MaxDiscoveredDlls = 20000;
+
+        /// <summary>A directory waiting to be walked, together with its depth below the root.</summary>
+        private struct PendingDirectory
+        {
+            public PendingDirectory(string path, int depth)
+            {
+                Path = path;
+                Depth = depth;
+            }
+
+            public string Path { get; }
+
+            public int Depth { get; }
+        }
+
         /// <summary>
         /// Directories skipped while walking for DLLs. Note: unlike the config-file walk,
         /// "bin" is intentionally NOT excluded - deployed libraries live in bin and must be
@@ -200,18 +223,22 @@ namespace DependencyTracker.Data.Services
             if (string.IsNullOrWhiteSpace(appPath) || !Directory.Exists(appPath))
                 return result;
 
-            var stack = new Stack<string>();
-            stack.Push(appPath);
+            var stack = new Stack<PendingDirectory>();
+            stack.Push(new PendingDirectory(appPath, 0));
 
             while (stack.Count > 0)
             {
-                var directory = stack.Pop();
+                var pending = stack.Pop();
+                var directory = pending.Path;
                 var directoryName = Path.GetFileName(directory.TrimEnd('\\', '/'));
                 if (!string.IsNullOrEmpty(directoryName) && DllExcludedDirectories.Contains(directoryName))
                     continue;
 
                 foreach (var dllFile in SafeGetFiles(directory, "*.dll"))
                 {
+                    if (result.Count >= MaxDiscoveredDlls)
+                        break;
+
                     var fileName = Path.GetFileName(dllFile);
                     if (string.IsNullOrEmpty(fileName))
                         continue;
@@ -234,8 +261,18 @@ namespace DependencyTracker.Data.Services
                     });
                 }
 
+                if (pending.Depth >= MaxScanDepth)
+                    continue;
+
                 foreach (var subDirectory in SafeGetDirectories(directory))
-                    stack.Push(subDirectory);
+                {
+                    // Junctions and symbolic links can point anywhere; following them would
+                    // let a scan wander outside the requested tree.
+                    if (IsReparsePoint(subDirectory))
+                        continue;
+
+                    stack.Push(new PendingDirectory(subDirectory, pending.Depth + 1));
+                }
             }
 
             return result
@@ -281,7 +318,10 @@ namespace DependencyTracker.Data.Services
 
             try
             {
-                var document = XDocument.Load(appHostConfigPath);
+                var document = SafeXml.Load(appHostConfigPath);
+                if (document == null)
+                    return map;
+
                 foreach (var site in document.Descendants("site"))
                 {
                     var name = (string)site.Attribute("name");
@@ -366,24 +406,42 @@ namespace DependencyTracker.Data.Services
 
         private IEnumerable<string> EnumerateConfigFiles(string root)
         {
-            var stack = new Stack<string>();
-            stack.Push(root);
+            var stack = new Stack<PendingDirectory>();
+            stack.Push(new PendingDirectory(root, 0));
+            var found = 0;
 
             while (stack.Count > 0)
             {
-                var directory = stack.Pop();
+                var pending = stack.Pop();
+                var directory = pending.Path;
                 var directoryName = Path.GetFileName(directory.TrimEnd('\\', '/'));
                 if (!string.IsNullOrEmpty(directoryName) && ExcludedDirectories.Contains(directoryName))
                     continue;
 
                 foreach (var configFile in SafeGetFiles(directory))
                 {
-                    if (IsConfigFile(Path.GetFileName(configFile)))
-                        yield return configFile;
+                    if (!IsConfigFile(Path.GetFileName(configFile)))
+                        continue;
+
+                    found++;
+                    if (found > MaxDiscoveredConfigFiles)
+                        yield break;
+
+                    yield return configFile;
                 }
 
+                if (pending.Depth >= MaxScanDepth)
+                    continue;
+
                 foreach (var subDirectory in SafeGetDirectories(directory))
-                    stack.Push(subDirectory);
+                {
+                    // Junctions and symbolic links can point anywhere; following them would
+                    // let a scan wander outside the requested tree.
+                    if (IsReparsePoint(subDirectory))
+                        continue;
+
+                    stack.Push(new PendingDirectory(subDirectory, pending.Depth + 1));
+                }
             }
         }
 
@@ -457,6 +515,23 @@ namespace DependencyTracker.Data.Services
             catch (Exception)
             {
                 return Enumerable.Empty<string>();
+            }
+        }
+
+        /// <summary>
+        /// True when the directory is a junction or symbolic link. Such directories are
+        /// not walked so a scan cannot be redirected outside the requested tree.
+        /// </summary>
+        private static bool IsReparsePoint(string directory)
+        {
+            try
+            {
+                var attributes = File.GetAttributes(directory);
+                return (attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

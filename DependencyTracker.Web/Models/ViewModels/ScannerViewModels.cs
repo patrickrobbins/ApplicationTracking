@@ -10,7 +10,7 @@ namespace DependencyTracker.Web.Models.ViewModels
         public int SourceApplicationId { get; set; }
 
         [Required(ErrorMessage = "Paste the configuration XML to scan.")]
-        [AllowHtml]
+        [StringLength(500000, ErrorMessage = "The configuration is too large to scan.")]
         [DataType(DataType.MultilineText)]
         public string ConfigXml { get; set; }
 
