@@ -152,7 +152,7 @@
     @Scripts.Render("~/bundles/graph")
     <script>
         $(function () {
-            var initialAppId = @Html.Raw(Model.SelectedApplicationId.HasValue
+            var initialAppId = @(Model.SelectedApplicationId.HasValue
                 ? Model.SelectedApplicationId.Value.ToString()
                 : "null");
 

@@ -53,20 +53,33 @@ namespace DependencyTracker.Web
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {
-            var isAjax = filterContext.HttpContext.Request.IsAjaxRequest();
-            if (isAjax)
+            var httpContext = filterContext.HttpContext;
+            var request = httpContext.Request;
+            var user = httpContext.User != null && httpContext.User.Identity != null
+                ? httpContext.User.Identity.Name
+                : null;
+
+            DependencyTracker.Web.Logging.AppLogger.LogSecurityEvent(
+                "Access denied for " + (string.IsNullOrEmpty(user) ? "anonymous" : user) +
+                " on " + request.HttpMethod + " " + request.Url.AbsolutePath +
+                " (required roles: " + (Roles ?? "any") + ")");
+
+            if (request.IsAjaxRequest())
             {
+                httpContext.Response.StatusCode = 403;
+                httpContext.Response.TrySkipIisCustomErrors = true;
                 filterContext.Result = new JsonResult
                 {
                     Data = new { success = false, message = "You are not authorized to perform this action." },
                     JsonRequestBehavior = JsonRequestBehavior.AllowGet
                 };
-                filterContext.HttpContext.Response.StatusCode = 403;
                 return;
             }
 
-            if (filterContext.HttpContext.User.Identity.IsAuthenticated)
+            if (httpContext.User.Identity.IsAuthenticated)
             {
+                httpContext.Response.StatusCode = 403;
+                httpContext.Response.TrySkipIisCustomErrors = true;
                 filterContext.Result = new ViewResult { ViewName = "AccessDenied" };
                 return;
             }

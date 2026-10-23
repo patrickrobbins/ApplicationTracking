@@ -35,13 +35,16 @@
         </div>
         @if (Model.OtherVersions != null && Model.OtherVersions.Any())
         {
-            var otherVersions = Model.OtherVersions.ToList();
-            var versionLinks = string.Join(", ", otherVersions.Select(v =>
-                "<a href=\"" + Url.Action("Details", "Applications", new { id = v.ApplicationId }) + "\" class=\"text-decoration-none\">" +
-                System.Web.HttpUtility.HtmlEncode("v" + (v.Version ?? "")) + "</a>"));
             <div class="small mt-1">
                 Other versions:
-                @Html.Raw(versionLinks)
+                @foreach (var v in otherVersions.Select((val, idx) => new { val, idx }))
+                {
+                    if (v.idx > 0)
+                    {
+                        @Html.Raw(", ")
+                    }
+                    <a href="@Url.Action("Details", "Applications", new { id = v.val.ApplicationId })" class="text-decoration-none">@("v" + (v.val.Version ?? ""))</a>
+                }
             </div>
         }
     </div>

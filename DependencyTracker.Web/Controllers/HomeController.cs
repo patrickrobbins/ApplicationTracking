@@ -9,6 +9,7 @@ using DependencyTracker.Web.Models.ViewModels;
 
 namespace DependencyTracker.Web.Controllers
 {
+    [AdAuthorize(Roles = "Viewer,Maintenance,Admin")]
     public class HomeController : Controller
     {
         private readonly IApplicationRepository _applicationRepository;

@@ -40,7 +40,15 @@ namespace DependencyTracker.Web
                     ? filterContext.HttpContext.Request.Url.AbsolutePath
                     : null;
 
-                AppLogger.LogError(ex, "Anti-forgery validation failed for " + path);
+                var user = filterContext.HttpContext != null
+                    && filterContext.HttpContext.User != null
+                    && filterContext.HttpContext.User.Identity != null
+                    ? filterContext.HttpContext.User.Identity.Name
+                    : null;
+
+                AppLogger.LogSecurityEvent(
+                    "Anti-forgery validation failed for " + (string.IsNullOrEmpty(user) ? "anonymous" : user) +
+                    " on " + path + " (" + ex.GetType().Name + ": " + ex.Message + ")");
 
                 filterContext.Result = new HttpStatusCodeResult(
                     400,
