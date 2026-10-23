@@ -35,10 +35,11 @@
         </div>
         @if (Model.OtherVersions != null && Model.OtherVersions.Any())
         {
-            <div class="small mt-1">
-                Other versions:
-                @foreach (var v in otherVersions.Select((val, idx) => new { val, idx }))
-                {
+        var otherVersions = Model.OtherVersions.ToList();
+        <div class="small mt-1">
+            Other versions:
+            @foreach (var v in otherVersions.Select((val, idx) => new { val, idx }))
+            {
                     if (v.idx > 0)
                     {
                         @Html.Raw(", ")
